@@ -2,9 +2,9 @@
 >
 > *A modified version of Gira+, changed since October 2026 to keep several accounts in one app. Unofficial, not affiliated with EMEL or the Gira+ authors. Changes are listed in MULTI_ACCOUNT.md; licensed under Gira+'s GPL v3.*
 >
-> **Antes de usar:** é uma aplicação não oficial, sem qualquer garantia, usada por sua conta e risco. Os [Termos e Condições da GIRA](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/) aplicam-se na mesma: a EMEL pode suspender ou cancelar contas se suspeitar de utilização abusiva e não se responsabiliza pelo acesso através de plataformas que não sejam as suas. Use apenas as suas próprias contas. Confirme sempre o fim de cada viagem. Detalhes em [MULTI_ACCOUNT.md](MULTI_ACCOUNT.md#before-you-use-it).
+> **Antes de usar:** é uma aplicação não oficial, sem qualquer garantia, usada por sua conta e risco. Os [Termos e Condições da GIRA](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/) aplicam-se na mesma: a EMEL pode suspender ou cancelar contas se suspeitar de utilização abusiva e não se responsabiliza pelo acesso através de plataformas que não sejam as suas. Esta aplicação não serve para partilhar contas. Confirme sempre o fim de cada viagem. Detalhes em [MULTI_ACCOUNT.md](MULTI_ACCOUNT.md#before-you-use-it).
 >
-> *__Before you use it:__ this is an unofficial app with no warranty, used at your own risk. The [GIRA terms](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/) still apply: EMEL can suspend or cancel accounts if it suspects abusive use, and takes no responsibility for access through platforms other than its own. Use only your own accounts. Always confirm that each trip has ended. Details in [MULTI_ACCOUNT.md](MULTI_ACCOUNT.md#before-you-use-it).*
+> *__Before you use it:__ this is an unofficial app with no warranty, used at your own risk. The [GIRA terms](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/) still apply: EMEL can suspend or cancel accounts if it suspects abusive use, and takes no responsibility for access through platforms other than its own. This app isn't for sharing accounts. Always confirm that each trip has ended. Details in [MULTI_ACCOUNT.md](MULTI_ACCOUNT.md#before-you-use-it).*
 
 <p align="center">
   <img src="assets/icon.svg" width="190">

@@ -9,7 +9,7 @@ It installs next to Gira+ (own app id) and follows upstream's releases: each rel
 - **Unofficial.** Not made by, or connected to, EMEL, VAIMOO or the Gira+ authors. Gira, Gira+ and related names belong to their owners. Please report problems here, not to them.
 - **No warranty.** As the GPL v3 says, it comes with no warranty and you use it at your own risk.
 - **EMEL's terms still apply.** You accepted the [GIRA terms](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/) when you registered (version of 15 September 2026 at the time of writing). They don't mention unofficial apps or set a limit on accounts, but EMEL can suspend or cancel an account without notice if it reasonably suspects abusive or fraudulent use (clause 3), and it excludes responsibility for access through platforms other than its own (clause 7). That can matter if you dispute a charge. Read the terms yourself, as they can change.
-- **Your own accounts only.** The terms say login details must never be given to anyone else (clause 3). This app is for accounts that are yours.
+- **Not for sharing accounts.** The terms say login details must never be given to anyone else (clause 3).
 - **Check that each trip ended.** The terms make that your responsibility: the dock gives a sound and light signal, and the trip's end shows in the app (clause 4). This app can't end a trip, and it may not notice a problem.
 - **Your data.** Saved logins stay on your phone and are left out of Android cloud backups. They're only sent to log in to EMEL's and VAIMOO's services. Analytics are off by default. Bike ratings and arrival sharing are on by default, as in Gira+, and can be turned off in the settings.
 - **This isn't legal advice.**
