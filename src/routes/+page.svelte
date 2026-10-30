@@ -30,6 +30,11 @@
 	import { networkStatus } from '$lib/network';
 	import Dialog from '$lib/components/Dialog.svelte';
 	import { startArrivalSharing } from '$lib/arrival-sharing';
+	import AccountPickerHost from '$lib/components/AccountPickerHost.svelte';
+	import TripAccountButton from '$lib/components/TripAccountButton.svelte';
+	import AccountSwipe from '$lib/components/AccountSwipe.svelte';
+	import AccountMenu from '$lib/components/AccountMenu.svelte';
+	import { closeAccountMenu } from '$lib/account-menu';
 
 	let backListener: PluginListenerHandle;
 	let innerHeight = $state(0);
@@ -69,7 +74,7 @@
 		});
 
 		App.addListener('backButton', () => {
-			if (!profileOpen) {
+			if (!profileOpen && !closeAccountMenu()) {
 				if (dismissSearchBar()) {
 				// just unfocus the search bar
 				} else if ($selectedStation != null) {
@@ -103,6 +108,9 @@
 
 	{#if $currentTrip !== null}
 		<TripStatus bind:height={tripStatusHeight} bind:width={tripStatusWidth} />
+		<Floating left={tripStatusWidth + 20} y={innerHeight} bottom offset={20}>
+			<TripAccountButton />
+		</Floating>
 	{:else}
 		<StationMenu bind:posTop={stationMenuPos} bind:anchorTop={stationMenuAnchor} bind:height={menuHeight} />
 		{#if $tripRating.currentRating != null && $networkStatus }
@@ -121,7 +129,7 @@
 	</Floating>
 
 	<Floating right={16} y={tripStatusHeight} offset={16}>
-		<ProfileButton onclick={() => profileOpen = true}/>
+		<AccountSwipe><ProfileButton onclick={() => profileOpen = true}/></AccountSwipe>
 	</Floating>
 
 	<Floating right={20} y={Math.max(tripStatusHeight + 16, $safeInsets.top)} offset={70}>
@@ -145,6 +153,8 @@
 		<Profile onclose={() => profileOpen = false}/>
 	{/if}
 	<Dialog />
+	<AccountPickerHost />
+	<AccountMenu />
 </div>
 
 <InfoDialog />
