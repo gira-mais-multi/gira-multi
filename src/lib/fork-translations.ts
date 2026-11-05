@@ -97,6 +97,74 @@ export const forkTranslations = {
 		en: 'Use another account',
 		pt: 'Usar outra conta',
 	},
+	multi_false_trip: {
+		en: 'False trip',
+		pt: 'Viagem falsa',
+	},
+	multi_email_emel: {
+		en: 'Write to EMEL',
+		pt: 'Escrever à EMEL',
+	},
+	multi_mark_false_trip: {
+		en: 'Mark as a false trip',
+		pt: 'Marcar como viagem falsa',
+	},
+	multi_unmark_false_trip: {
+		en: 'Remove the false trip mark',
+		pt: 'Retirar a marca de viagem falsa',
+	},
+	multi_copy_trip_log: {
+		en: 'Copy the trip log',
+		pt: 'Copiar o registo da viagem',
+	},
+	multi_trip_log_copied: {
+		en: 'Trip log copied',
+		pt: 'Registo da viagem copiado',
+	},
+	multi_edit_email_text: {
+		en: 'Edit the email text',
+		pt: 'Editar o texto do email',
+	},
+	multi_email_not_main_title: {
+		en: 'Not the Main account',
+		pt: 'Não é a conta principal',
+	},
+	multi_email_not_main_message: {
+		en: "You're on {{email}}, which isn't your Main account. Send from this account's own address: an email from another address shows EMEL that the accounts belong to the same person.",
+		pt: 'Está na conta {{email}}, que não é a principal. Envie a partir do endereço desta conta: um email de outro endereço mostra à EMEL que as contas são da mesma pessoa.',
+	},
+	multi_continue: {
+		en: 'Continue',
+		pt: 'Continuar',
+	},
+	multi_email_text_title: {
+		en: 'Your email text',
+		pt: 'O seu texto do email',
+	},
+	multi_email_text_message: {
+		en: 'It stays on this phone only, and the app adds the trip details after it. Write only true facts.',
+		pt: 'Fica só neste telemóvel, e a app junta-lhe os dados da viagem. Escreva só factos verdadeiros.',
+	},
+	multi_email_text_placeholder: {
+		en: 'Write your text here',
+		pt: 'Escreva aqui o seu texto',
+	},
+	multi_save: {
+		en: 'Save',
+		pt: 'Guardar',
+	},
+	multi_email_send_title: {
+		en: 'Email to EMEL',
+		pt: 'Email para a EMEL',
+	},
+	multi_email_send_message: {
+		en: 'This opens a draft in your email app. Check it before sending.',
+		pt: 'Abre um rascunho na sua aplicação de email. Reveja-o antes de enviar.',
+	},
+	multi_open_email: {
+		en: 'Open email',
+		pt: 'Abrir email',
+	},
 	multi_not_now: {
 		en: 'Not now',
 		pt: 'Agora não',

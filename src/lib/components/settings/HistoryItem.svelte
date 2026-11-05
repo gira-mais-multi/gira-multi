@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { CompletedTrip } from '$lib/gira-api/models';
 	import TripCost from '$lib/components/TripCost.svelte';
+	import TripExtras from '$lib/components/TripExtras.svelte';
+	import { hold } from '$lib/hold';
+	import { tripMenu } from '$lib/trip-marks';
 	import { t } from '$lib/translations';
 
 	interface Props {
@@ -33,7 +36,7 @@
 </script>
 
 {#if trip != null}
-	<div class="flex bg-background rounded-2xl py-4 px-6 gap-5 text-info justify-between dark:bg-background-secondary" style:box-shadow="0px 0px 12px 0px var(--color-shadow)">
+	<div class="flex flex-wrap bg-background rounded-2xl py-4 px-6 gap-5 text-info justify-between dark:bg-background-secondary" style:box-shadow="0px 0px 12px 0px var(--color-shadow)" use:hold={() => tripMenu.set({ trip, email: false })}>
 		<div class="flex flex-col items-center justify-center gap-[6px]">
 			<div class="rounded-full border-[3px] w-4 h-4 border-primary shrink-0"></div>
 			<div class="bg-primary w-[3px] h-2 rounded-full"></div>
@@ -44,7 +47,7 @@
 				<path d="M17.5 46L4.00002 28L30 28L17.5 46Z" class="fill-primary"/>
 			</svg>
 		</div>
-		<div class="flex flex-col gap-4 grow">
+		<div class="flex flex-col gap-4 grow basis-0 min-w-0">
 			<div class="min-h-12">
 				<div class="font-bold text-primary text-xl leading-none">{formatHours(trip.startedAt)}</div>
 				{#if trip.startStation}
@@ -90,6 +93,7 @@
 				<TripCost cost={trip.cost} />
 			</div>
 		</div>
+		<TripExtras {trip} />
 	</div>
 {:else}
 	<div class="bg-background-secondary animate-pulse h-36 rounded-2xl py-4 px-6 gap-5" style:box-shadow="0px 0px 12px 0px var(--color-shadow)"></div>

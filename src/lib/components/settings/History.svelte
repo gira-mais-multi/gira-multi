@@ -13,6 +13,7 @@
 	import { reportApiError } from '$lib/error-reporting';
 	import PaidOnlySwitch from '$lib/components/PaidOnlySwitch.svelte';
 	import PaidTripsLoader from '$lib/components/PaidTripsLoader.svelte';
+	import TripMenuHost from '$lib/components/TripMenuHost.svelte';
 	import { isPaidTrip } from '$lib/paid-trips';
 
 	let trips:CompletedTrip[] = $state([]);
@@ -91,6 +92,7 @@
 </script>
 
 <MenuPage>
+	<TripMenuHost />
 	<div class="flex items-center justify-between px-5 pt-5">
 		<div class="text-3xl font-bold text-info">{$t('trips_label')}</div>
 		<PaidOnlySwitch bind:on={paidOnly} />
