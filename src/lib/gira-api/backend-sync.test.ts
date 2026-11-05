@@ -21,7 +21,9 @@ vi.mock('$lib/error-reporting', () => ({ reportApiError: vi.fn() }));
 
 import { currentTrip } from '$lib/trip';
 import { startBackendSync, stopBackendSync } from './backend-sync';
-import { GHOST_TRIP_AFTER_MS, setGhostTripHandler } from '$lib/ghost-trip';
+import { GHOST_TRIP_AFTER_MS } from '$lib/ghost-trip';
+import { dismissDockCheck, dockCheck } from '$lib/dock-check';
+import { errorMessages } from '$lib/ui.svelte';
 
 function trip(confirmed = true): ActiveTrip {
 	return {
@@ -120,26 +122,32 @@ describe('trip status polling', () => {
 		expect(mocks.refreshTripStatus).toHaveBeenCalledTimes(2);
 	});
 
-	it('offers another account when VAIMOO keeps the trip open two minutes after the bike docked', async () => {
-		const offer = vi.fn(() => true);
-		setGhostTripHandler(offer);
+	it('asks the rider to wait at the dock, then says the trip is stuck if VAIMOO keeps it open two minutes', async () => {
 		currentTrip.set(trip());
 		startBackendSync();
 		await Promise.resolve();
 		mocks.refreshTripStatus.mockResolvedValue({ id: '123' });
 		mocks.bikeListener!({ TripVehicleState: 'LOCKED', TripId: null, TripErrorCode: 0 });
+		expect(get(dockCheck)).toEqual({ kind: 'waiting', tripCode: '123' });
 		await vi.advanceTimersByTimeAsync(GHOST_TRIP_AFTER_MS - 1_000);
-		expect(offer).not.toHaveBeenCalled();
+		expect(get(dockCheck)?.kind).toBe('waiting');
 		await vi.advanceTimersByTimeAsync(15_000);
-		expect(offer).toHaveBeenCalledOnce();
-		await vi.advanceTimersByTimeAsync(60_000);
-		expect(offer).toHaveBeenCalledOnce();
-		setGhostTripHandler(null);
+		expect(get(dockCheck)?.kind).toBe('stuck');
+		dismissDockCheck();
 	});
 
-	it('makes no offer when the trip ends after the bike docked', async () => {
-		const offer = vi.fn(() => true);
-		setGhostTripHandler(offer);
+	it('shows the dock problem card instead of a toast when the bike reports an end failure', async () => {
+		currentTrip.set(trip());
+		startBackendSync();
+		await Promise.resolve();
+		mocks.bikeListener!({ TripVehicleState: 'RIDING', TripId: 123, TripErrorCode: 0 });
+		mocks.bikeListener!({ TripVehicleState: 'RIDING', TripId: 123, TripErrorCode: 402 });
+		expect(get(dockCheck)).toEqual({ kind: 'problem', tripCode: '123' });
+		expect(errorMessages.add).not.toHaveBeenCalled();
+		dismissDockCheck();
+	});
+
+	it("doesn't call the trip stuck when it ends after the bike docked", async () => {
 		currentTrip.set(trip());
 		startBackendSync();
 		await Promise.resolve();
@@ -149,7 +157,7 @@ describe('trip status polling', () => {
 		currentTrip.set(trip());
 		mocks.refreshTripStatus.mockResolvedValue({ id: '123' });
 		await vi.advanceTimersByTimeAsync(GHOST_TRIP_AFTER_MS + 15_000);
-		expect(offer).not.toHaveBeenCalled();
-		setGhostTripHandler(null);
+		expect(get(dockCheck)?.kind).not.toBe('stuck');
+		dismissDockCheck();
 	});
 });

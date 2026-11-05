@@ -1,3 +1,4 @@
+import { dockTripEnded } from '$lib/dock-check';
 import { LOCK_DISTANCE_m } from '$lib/constants';
 import { isReportedUnlock, reportUnlockAttempt, trackUnlockResult, type UnlockSubject } from '$lib/unlock-reporting';
 import { getActiveTrip, getTripHistory, knownErrorCodes, knownErrors, quickStartBike } from '$lib/gira-api/api';
@@ -95,6 +96,7 @@ async function completeTrip(trip: ActiveTrip) {
 	}
 	logTripLifecycle('completion-started', { trip: tripSummary(trip) });
 	completingTripId = trip.code;
+	dockTripEnded(trip.code); // Gira+ Multi
 	currentTrip.set(null);
 	if (trip.bikePlate) {
 		tripRating.set({ currentRating: { code: trip.code, bikePlate: trip.bikePlate, startDate: trip.startDate, endDate: new Date } });

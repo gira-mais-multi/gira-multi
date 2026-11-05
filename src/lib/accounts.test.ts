@@ -355,17 +355,18 @@ describe('unlock refused for an active trip', () => {
 describe('ghost trip', () => {
 	afterEach(() => ghost.ghostTripReset());
 
-	it('opens the account picker once the trip counts as a ghost trip', async () => {
+	it("opens the account picker from the stuck trip card's button, not by itself", async () => {
 		const { accounts } = await setup([ALICE, BOB], ALICE);
 		ghost.ghostTripSignal('123', 0);
 		ghost.ghostTripStillOpen('123', ghost.GHOST_TRIP_AFTER_MS);
+		expect(get(accounts.accountPicker)).toBeNull();
+		expect(ghost.offerOtherAccount()).toBe(true);
 		expect(get(accounts.accountPicker)).toEqual({ reason: 'ghost-trip' });
 	});
 
 	it('offers nothing with a single account', async () => {
 		const { accounts } = await setup([ALICE], ALICE);
-		ghost.ghostTripSignal('123', 0);
-		ghost.ghostTripStillOpen('123', ghost.GHOST_TRIP_AFTER_MS);
+		expect(ghost.offerOtherAccount()).toBe(false);
 		expect(get(accounts.accountPicker)).toBeNull();
 	});
 });

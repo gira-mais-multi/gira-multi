@@ -61,6 +61,42 @@ export const forkTranslations = {
 		en: 'No pass',
 		pt: 'Sem passe',
 	},
+	multi_dock_waiting_title: {
+		en: 'Confirming the trip has ended…',
+		pt: 'A confirmar o fim da viagem…',
+	},
+	multi_dock_waiting_message: {
+		en: "The bike is in the dock. Wait for the dock's sound and light signal, and stay here until the trip ends.",
+		pt: 'A bicicleta está na doca. Espere pelo sinal sonoro e luminoso da doca e fique por aqui até a viagem terminar.',
+	},
+	multi_dock_ended_title: {
+		en: 'Trip ended',
+		pt: 'Viagem terminada',
+	},
+	multi_dock_ended_message: {
+		en: 'You can go now.',
+		pt: 'Já pode sair daqui.',
+	},
+	multi_dock_stuck_title: {
+		en: "The trip hasn't ended",
+		pt: 'A viagem não terminou',
+	},
+	multi_dock_stuck_message: {
+		en: "The bike reports it's in the dock, but EMEL still shows this trip open. Note the time.",
+		pt: 'A bicicleta indica que está na doca, mas a EMEL ainda mostra esta viagem aberta. Anote a hora.',
+	},
+	multi_dock_problem_title: {
+		en: "The trip hasn't ended yet",
+		pt: 'A viagem ainda não terminou',
+	},
+	multi_dock_problem_message: {
+		en: 'The bike reported a problem. Push it in again until it locks, or try another dock.',
+		pt: 'A bicicleta reportou um problema. Empurre-a de novo até bloquear, ou tente outra doca.',
+	},
+	multi_dock_other_account: {
+		en: 'Use another account',
+		pt: 'Usar outra conta',
+	},
 	multi_not_now: {
 		en: 'Not now',
 		pt: 'Agora não',

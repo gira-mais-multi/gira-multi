@@ -34,6 +34,8 @@
 	import TripAccountButton from '$lib/components/TripAccountButton.svelte';
 	import AccountSwipe from '$lib/components/AccountSwipe.svelte';
 	import AccountMenu from '$lib/components/AccountMenu.svelte';
+	import DockCheck from '$lib/components/DockCheck.svelte';
+	import { dockCheck } from '$lib/dock-check';
 	import { closeAccountMenu } from '$lib/account-menu';
 
 	let backListener: PluginListenerHandle;
@@ -113,10 +115,12 @@
 		</Floating>
 	{:else}
 		<StationMenu bind:posTop={stationMenuPos} bind:anchorTop={stationMenuAnchor} bind:height={menuHeight} />
-		{#if $tripRating.currentRating != null && $networkStatus }
+		{#if $tripRating.currentRating != null && $networkStatus && $dockCheck?.kind !== 'ended'}
 			<TripRating tripCode={$tripRating.currentRating.code} bikePlate={$tripRating.currentRating.bikePlate} date={$tripRating.currentRating.endDate} />
 		{/if}
 	{/if}
+
+	<DockCheck top={searchBarBottom + 12} left={tripStatusWidth} />
 
 	{#if !$networkStatus}
 		<NetworkWarning {tripStatusHeight} {tripStatusWidth} />

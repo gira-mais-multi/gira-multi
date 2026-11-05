@@ -9,6 +9,7 @@ import { t } from '$lib/translations';
 import { reportErrorEvent } from '$lib/gira-mais-api/gira-mais-api';
 import { reportApiError } from '$lib/error-reporting';
 import { ghostTripReset, ghostTripSignal, ghostTripStillOpen } from '$lib/ghost-trip';
+import { dockProblem } from '$lib/dock-check';
 
 const PENDING_TRIP_INTERVAL_MS = 3_000;
 const FIRESTORE_START_TRIP_TIMEOUT = 100;
@@ -108,7 +109,7 @@ function followActiveBike(bikeId: string | null) {
 					abortPendingTrip(`firestore-error:${nextErrorCode}`);
 					errorMessages.add(get(t)('bike_unlock_error'));
 				} else if (trip?.confirmed) {
-					errorMessages.add(get(t)('trip_end_error'), 5000);
+					dockProblem(trip.code); // Gira+ Multi: the dock check card instead of a toast
 				}
 				void refreshTripStatus(`firestore-error:${nextErrorCode}`);
 			}
