@@ -10,6 +10,7 @@ import { reportErrorEvent } from '$lib/gira-mais-api/gira-mais-api';
 import { reportApiError } from '$lib/error-reporting';
 import { ghostTripReset, ghostTripSignal, ghostTripStillOpen } from '$lib/ghost-trip';
 import { dockProblem } from '$lib/dock-check';
+import { logBikeState } from '$lib/trip-log';
 
 const PENDING_TRIP_INTERVAL_MS = 3_000;
 const FIRESTORE_START_TRIP_TIMEOUT = 100;
@@ -89,6 +90,7 @@ function followActiveBike(bikeId: string | null) {
 				tripEndSignalled,
 			});
 			const trip = get(currentTrip);
+			if (trip?.confirmed) logBikeState(trip.code, nextState, nextErrorCode, bike?.TripId ?? null); // Gira+ Multi
 			if (tripEnded && trip?.confirmed && !tripEndSignalled) {
 				console.debug('Firestore reports the bike locked with no trip, confirming with VAIMOO');
 				logBackendSync('trip-end-signalled', { bikeId, nextState, tripId: bike.TripId ?? null });
