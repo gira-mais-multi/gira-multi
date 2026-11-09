@@ -125,18 +125,6 @@ export const forkTranslations = {
 		en: 'Edit the email text',
 		pt: 'Editar o texto do email',
 	},
-	multi_email_not_main_title: {
-		en: 'Not the Main account',
-		pt: 'Não é a conta principal',
-	},
-	multi_email_not_main_message: {
-		en: "You're on {{email}}, which isn't your Main account. Send from this account's own address: an email from another address shows EMEL that the accounts belong to the same person.",
-		pt: 'Está na conta {{email}}, que não é a principal. Envie a partir do endereço desta conta: um email de outro endereço mostra à EMEL que as contas são da mesma pessoa.',
-	},
-	multi_continue: {
-		en: 'Continue',
-		pt: 'Continuar',
-	},
 	multi_email_text_title: {
 		en: 'Your email text',
 		pt: 'O seu texto do email',
@@ -160,6 +148,22 @@ export const forkTranslations = {
 	multi_email_send_message: {
 		en: 'This opens a draft in your email app. Check it before sending.',
 		pt: 'Abre um rascunho na sua aplicação de email. Reveja-o antes de enviar.',
+	},
+	multi_email_send_from: {
+		en: 'Send it from',
+		pt: 'Envie a partir de',
+	},
+	multi_email_send_from_hint: {
+		en: 'Your email app picks the sender itself. Check that the sender (From) is this address: an email from another one shows EMEL that the accounts belong to the same person.',
+		pt: 'A aplicação de email escolhe o remetente sozinha. Confirme que o remetente (De) é este endereço: um email de outro endereço mostra à EMEL que as contas são da mesma pessoa.',
+	},
+	multi_copy: {
+		en: 'Copy',
+		pt: 'Copiar',
+	},
+	multi_copied: {
+		en: 'Copied',
+		pt: 'Copiado',
 	},
 	multi_open_email: {
 		en: 'Open email',

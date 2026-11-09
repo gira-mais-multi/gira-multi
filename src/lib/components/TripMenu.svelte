@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Gira+ Multi: a history trip's menu (false trip mark, trip log, email) and the steps of the email to EMEL
 	import { userCredentials } from '$lib/account';
-	import { mainAccount, sameEmail } from '$lib/accounts';
 	import type { CompletedTrip } from '$lib/gira-api/models';
 	import { isPaidTrip } from '$lib/paid-trips';
 	import { t } from '$lib/translations';
@@ -10,19 +9,18 @@
 
 	let { trip, email, dismiss }: { trip: CompletedTrip, email: boolean, dismiss: () => void } = $props();
 
-	type Step = 'menu' | 'warn' | 'text' | 'send';
+	type Step = 'menu' | 'text' | 'send';
 
 	const account = $derived($userCredentials?.email ?? null);
-	const notMain = $derived($mainAccount !== null && account !== null && !sameEmail($mainAccount, account));
 	const log = $derived(tripLogFor(trip.id));
 	const draft = $derived(tripEmail(trip, account, $emailText));
 
-	let warned = false;
 	let editingOnly = false;
 	let text = $state('');
 	let copied = $state(false);
+	let senderCopied = $state(false);
 
-	const nextEmailStep = (): Step => notMain && !warned ? 'warn' : $emailText ? 'send' : 'text';
+	const nextEmailStep = (): Step => $emailText ? 'send' : 'text';
 	// svelte-ignore state_referenced_locally
 	let step = $state<Step>(email ? nextEmailStep() : 'menu');
 
@@ -46,6 +44,13 @@
 		await navigator.clipboard.writeText(formatTripLog(log));
 		copied = true;
 	}
+
+	// The email app picks the sender itself, so the rider copies this account's address to check or switch it there
+	async function copySender() {
+		if (!account) return;
+		await navigator.clipboard.writeText(account);
+		senderCopied = true;
+	}
 </script>
 
 <div class="w-[340px] max-w-md mx-auto p-6 bg-background rounded-2xl shadow-lg text-left flex flex-col gap-3">
@@ -68,13 +73,6 @@
 		<div class="flex justify-end mt-1 font-bold">
 			<button class="text-label" onclick={dismiss}>{$t('cancel_button')}</button>
 		</div>
-	{:else if step === 'warn'}
-		<h1 class="text-lg font-semibold text-warning">{$t('multi_email_not_main_title')}</h1>
-		<div class="text-sm text-label">{$t('multi_email_not_main_message', { email: account ?? '' })}</div>
-		<div class="flex justify-end gap-5 mt-1 font-bold">
-			<button class="text-label" onclick={dismiss}>{$t('cancel_button')}</button>
-			<button class="text-primary" onclick={() => { warned = true; step = nextEmailStep(); }}>{$t('multi_continue')}</button>
-		</div>
 	{:else if step === 'text'}
 		<h1 class="text-lg font-semibold text-info">{$t('multi_email_text_title')}</h1>
 		<!-- The text box comes before the hint: kept high, the keyboard doesn't push the whole screen up on top of Gira+'s own lift -->
@@ -88,8 +86,18 @@
 		</div>
 	{:else}
 		<h1 class="text-lg font-semibold text-info">{$t('multi_email_send_title')}</h1>
+		{#if account}
+			<div class="rounded-xl bg-background-secondary px-4 py-3 flex flex-col gap-1">
+				<div class="text-xs text-label">{$t('multi_email_send_from')}</div>
+				<div class="flex items-center justify-between gap-3">
+					<div class="font-bold text-info break-all">{account}</div>
+					<button class="shrink-0 text-sm font-bold text-primary" onclick={copySender}>{$t(senderCopied ? 'multi_copied' : 'multi_copy')}</button>
+				</div>
+			</div>
+			<div class="text-xs text-label">{$t('multi_email_send_from_hint')}</div>
+		{/if}
 		<div class="text-sm text-label">{$t('multi_email_send_message')}</div>
-		<pre class="whitespace-pre-wrap font-sans text-xs text-info bg-background-secondary rounded-lg p-3 max-h-60 overflow-y-auto">{draft.body}</pre>
+		<pre class="whitespace-pre-wrap font-sans text-xs text-info bg-background-secondary rounded-lg p-3 max-h-44 overflow-y-auto">{draft.body}</pre>
 		<div class="flex justify-end items-center gap-5 mt-1 font-bold">
 			<button class="text-label" onclick={() => openText(false)}>{$t('multi_edit_email_text')}</button>
 			<a href={draft.url} class="text-primary" onclick={dismiss}>{$t('multi_open_email')}</a>
