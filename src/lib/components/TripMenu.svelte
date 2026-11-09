@@ -6,6 +6,7 @@
 	import { t } from '$lib/translations';
 	import { formatTripLog, tripLogFor } from '$lib/trip-log';
 	import { emailText, falseTrips, saveEmailText, toggleFalseTrip, tripEmail } from '$lib/trip-marks';
+	import { safeInsets } from '$lib/ui.svelte';
 
 	let { trip, email, dismiss }: { trip: CompletedTrip, email: boolean, dismiss: () => void } = $props();
 
@@ -53,7 +54,10 @@
 	}
 </script>
 
-<div class="w-[340px] max-w-md mx-auto p-6 bg-background rounded-2xl shadow-lg text-left flex flex-col gap-3">
+<!-- The text step is pinned near the top: the keyboard never covers it, so neither the phone's scroll to the
+     text box nor the dialog's keyboard lift moves it (together they pushed it off the top) -->
+<div class="w-[340px] max-w-md mx-auto p-6 bg-background rounded-2xl shadow-lg text-left flex flex-col gap-3"
+	class:pinned={step === 'text'} style:top={step === 'text' ? `${Math.max(16, $safeInsets.top + 16)}px` : null}>
 	{#if step === 'menu'}
 		<h1 class="text-lg font-semibold text-info">{title}</h1>
 		<div class="flex flex-col gap-2">
@@ -75,7 +79,6 @@
 		</div>
 	{:else if step === 'text'}
 		<h1 class="text-lg font-semibold text-info">{$t('multi_email_text_title')}</h1>
-		<!-- The text box comes before the hint: kept high, the keyboard doesn't push the whole screen up on top of Gira+'s own lift -->
 		<textarea bind:value={text} rows="6" placeholder={$t('multi_email_text_placeholder')}
 			class="w-full resize-none rounded-lg border border-background-tertiary bg-background-secondary text-sm text-info placeholder-label focus:border-primary focus:ring-primary"
 		></textarea>
@@ -104,3 +107,11 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	.pinned {
+		position: fixed;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+</style>
