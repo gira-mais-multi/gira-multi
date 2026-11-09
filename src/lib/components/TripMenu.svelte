@@ -6,7 +6,8 @@
 	import { t } from '$lib/translations';
 	import { formatTripLog, tripLogFor } from '$lib/trip-log';
 	import { emailText, falseTrips, saveEmailText, toggleFalseTrip, tripEmail } from '$lib/trip-marks';
-	import { safeInsets } from '$lib/ui.svelte';
+	import { keyboard, safeInsets } from '$lib/ui.svelte';
+	import { tick } from 'svelte';
 
 	let { trip, email, dismiss }: { trip: CompletedTrip, email: boolean, dismiss: () => void } = $props();
 
@@ -52,12 +53,47 @@
 		await navigator.clipboard.writeText(account);
 		senderCopied = true;
 	}
+
+	// While the keyboard is open on the text step, the window sits at the top of the visible area instead of the
+	// centre. Kept here rather than in Gira+'s Dialog so upstream updates merge cleanly. The phone scrolls the screen
+	// to the text box and the Dialog lifts by the keyboard height; pinned to the visible top, neither moves it off screen
+	let box = $state<HTMLDivElement>();
+	let lifted = $state(false);
+	let visibleTop = $state(0);
+	const liftedTop = $derived(visibleTop + Math.max(16, $safeInsets.top + 16));
+
+	$effect(() => {
+		const viewport = window.visualViewport;
+		if (!viewport) return;
+		const update = () => visibleTop = viewport.offsetTop;
+		update();
+		viewport.addEventListener('resize', update);
+		viewport.addEventListener('scroll', update);
+		return () => {
+			viewport.removeEventListener('resize', update);
+			viewport.removeEventListener('scroll', update);
+		};
+	});
+
+	$effect(() => {
+		const next = step === 'text' && keyboard.visible;
+		if (next !== lifted) void slide(next);
+	});
+
+	// Moves between the centre and the top, then plays the jump as a slide from where it was
+	async function slide(next: boolean) {
+		const before = box?.getBoundingClientRect().top;
+		lifted = next;
+		await tick();
+		const after = box?.getBoundingClientRect().top;
+		if (box && before !== undefined && after !== undefined && before !== after) {
+			box.animate([{ transform: `translateY(${before - after}px)` }, { transform: 'none' }], { duration: 300, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' });
+		}
+	}
 </script>
 
-<!-- The text step is pinned near the top: the keyboard never covers it, so neither the phone's scroll to the
-     text box nor the dialog's keyboard lift moves it (together they pushed it off the top) -->
-<div class="w-[340px] max-w-md mx-auto p-6 bg-background rounded-2xl shadow-lg text-left flex flex-col gap-3"
-	class:pinned={step === 'text'} style:top={step === 'text' ? `${Math.max(16, $safeInsets.top + 16)}px` : null}>
+<div bind:this={box} class="w-[340px] max-w-md mx-auto p-6 bg-background rounded-2xl shadow-lg text-left flex flex-col gap-3"
+	class:lifted style:top={lifted ? `${liftedTop}px` : null}>
 	{#if step === 'menu'}
 		<h1 class="text-lg font-semibold text-info">{title}</h1>
 		<div class="flex flex-col gap-2">
@@ -109,9 +145,9 @@
 </div>
 
 <style>
-	.pinned {
+	.lifted {
 		position: fixed;
-		left: 50%;
-		transform: translateX(-50%);
+		left: 0;
+		right: 0;
 	}
 </style>
