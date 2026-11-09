@@ -77,10 +77,11 @@
 		</div>
 	{:else if step === 'text'}
 		<h1 class="text-lg font-semibold text-info">{$t('multi_email_text_title')}</h1>
-		<div class="text-sm text-label">{$t('multi_email_text_message')}</div>
+		<!-- The text box comes before the hint: kept high, the keyboard doesn't push the whole screen up on top of Gira+'s own lift -->
 		<textarea bind:value={text} rows="6" placeholder={$t('multi_email_text_placeholder')}
 			class="w-full resize-none rounded-lg border border-background-tertiary bg-background-secondary text-sm text-info placeholder-label focus:border-primary focus:ring-primary"
 		></textarea>
+		<div class="text-xs text-label">{$t('multi_email_text_message')}</div>
 		<div class="flex justify-end gap-5 mt-1 font-bold">
 			<button class="text-label" onclick={dismiss}>{$t('cancel_button')}</button>
 			<button class="text-primary" onclick={saveText}>{$t('multi_save')}</button>

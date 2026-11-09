@@ -17,7 +17,8 @@
 	function clearError() {
 		errorCode = null;
 	}
-	async function loginWrapper() {
+	async function loginWrapper(event?: SubmitEvent) {
+		event?.preventDefault(); // Gira+ Multi: with the autofill names, the browser's own submit would put both fields in the page address
 		if (loading) return;
 		loading = true;
 		errorCode = null;
