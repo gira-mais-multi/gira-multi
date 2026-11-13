@@ -10,14 +10,22 @@ Descarregue o APK em [Releases](../../releases), ou adicione o endereço deste r
 
 *Download the APK from [Releases](../../releases), or add this repository's address to [Obtainium](https://github.com/ImranR98/Obtainium) to get updates. Each release is the latest Gira+ release with these changes.*
 
-## Aviso legal / Disclaimer
+## Antes de usar / Before you use it
 
-Não é feito pela EMEL, pela VAIMOO nem pelos autores do Gira+, nem tem qualquer ligação a eles. É disponibilizado "tal como está", sem qualquer garantia, nos termos da GPL v3. Usa-o por sua conta e risco e é o único responsável pela forma como o usa, incluindo o cumprimento dos [Termos e Condições da GIRA](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/): não serve para partilhar contas nem para emprestar bicicletas. Os autores não aceitam qualquer responsabilidade por contas suspensas ou canceladas, cobranças, taxas, viagens que não terminam, ou qualquer outra perda ou dano. Gira, Gira+ e nomes relacionados pertencem aos respetivos titulares. Isto não é aconselhamento jurídico.
+A Gira+ Multi não é oficial e não está afiliada de modo algum à EMEL, à Câmara Municipal de Lisboa nem aos autores da Gira+.
 
-*Not made by, or connected to, EMEL, VAIMOO or the Gira+ authors. Provided "as is", without any warranty, under the GPL v3. You use it at your own risk and are solely responsible for how you use it, including following the [GIRA Terms and Conditions](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/): it is not for sharing accounts or lending bikes. The authors accept no liability for suspended or cancelled accounts, charges, fees, trips that don't end, or any other loss or damage. Gira, Gira+ and related names belong to their owners. This is not legal advice.*
+Cada conta guardada deve ser sua e estar registada com os seus dados. Os [Termos e Condições da GIRA](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/) continuam a aplicar-se: não permitem emprestar a bicicleta nem as credenciais a outras pessoas, e a EMEL pode suspender contas que considere usadas de forma abusiva, por exemplo para contornar o intervalo entre viagens.
+
+A aplicação é disponibilizada tal como está, sem garantias, e é usada por sua conta e risco. Problemas com esta versão reportam-se aqui. Problemas com o serviço GIRA em si, como cobranças ou viagens que não terminam, tratam-se com a EMEL via gira@emel.pt.
+
+*Gira+ Multi is unofficial and not affiliated in any way with EMEL, Câmara Municipal de Lisboa or the Gira+ authors.*
+
+*Every saved account must be your own and registered with your details. The [GIRA Terms and Conditions](https://www.gira-bicicletasdelisboa.pt/termos-condicoes-do-servico-gira/) still apply: they don't allow lending the bike or your login to anyone else, and EMEL can suspend accounts it considers misused, for example to get around the wait between trips.*
+
+*The app is provided as is, without warranty, and you use it at your own risk. Report problems with this version here. Problems with the GIRA service itself, such as charges or trips that won't end, go to EMEL at gira@emel.pt.*
 
 ## Licença / Licence
 
-O Gira+ é da RT Labs, sob a GNU General Public License v3 com a permissão adicional descrita em [LICENSE](LICENSE). Esta versão modificada tem a mesma licença. O código fonte completo é este repositório; o de cada versão é o commit a partir do qual foi construída.
+A Gira+ é da RT Labs, sob a GNU General Public License v3 com a permissão adicional descrita em [LICENSE](LICENSE). Esta versão modificada tem a mesma licença. O código fonte completo é este repositório; o de cada versão é o commit a partir do qual foi construída.
 
 *Gira+ is by RT Labs, under the GNU General Public License v3 with the additional permission set out in [LICENSE](LICENSE). This modified version has the same licence. Its full source is this repository; each release's source is the commit it was built from.*

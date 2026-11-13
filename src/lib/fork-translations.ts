@@ -154,8 +154,8 @@ export const forkTranslations = {
 		pt: 'Envie a partir de',
 	},
 	multi_email_send_from_hint: {
-		en: 'Your email app picks the sender itself. Check that the sender (From) is this address: an email from another one shows EMEL that the accounts belong to the same person.',
-		pt: 'A aplicação de email escolhe o remetente sozinha. Confirme que o remetente (De) é este endereço: um email de outro endereço mostra à EMEL que as contas são da mesma pessoa.',
+		en: 'Your email app picks the sender itself. Check that the sender (From) is this address: EMEL handles requests about an account from the email registered on it.',
+		pt: 'A aplicação de email escolhe o remetente sozinha. Confirme que o remetente (De) é este endereço: a EMEL trata os pedidos sobre uma conta a partir do email registado nela.',
 	},
 	multi_copy: {
 		en: 'Copy',

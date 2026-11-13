@@ -1,6 +1,6 @@
-> **Gira+ Multi** – versão modificada e não oficial do [Gira+](https://github.com/rt-evil-inc/gira-mais), alterada desde outubro de 2026 para guardar várias contas na mesma aplicação e trocar entre elas sem terminar sessão. Só Android. Instale a partir de [Releases](../../releases) ou com o [Obtainium](https://github.com/ImranR98/Obtainium). Aviso legal e licença em [MULTI_ACCOUNT.md](MULTI_ACCOUNT.md); o resto deste README é o original do Gira+.
+> **Gira+ Multi** – versão modificada e não oficial da [Gira+](https://github.com/rt-evil-inc/gira-mais), alterada desde outubro de 2026 para guardar várias contas na mesma aplicação e trocar entre elas sem terminar sessão. Só Android. Instale a partir de [Releases](../../releases) ou com o [Obtainium](https://github.com/ImranR98/Obtainium). Leia [antes de usar](MULTI_ACCOUNT.md); o resto deste README é o original da Gira+.
 >
-> *__Gira+ Multi__ – unofficial modified version of Gira+, changed since October 2026 to keep several accounts in one app and switch between them without logging out. Android only. Install from Releases or with Obtainium. Disclaimer and licence in MULTI_ACCOUNT.md; the rest of this README is Gira+'s own.*
+> *__Gira+ Multi__ – unofficial modified version of Gira+, changed since October 2026 to keep several accounts in one app and switch between them without logging out. Android only. Install from Releases or with Obtainium. Read [before you use it](MULTI_ACCOUNT.md); the rest of this README is Gira+'s own.*
 
 <p align="center">
   <img src="assets/icon.svg" width="190">
