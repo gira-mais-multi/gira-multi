@@ -14,20 +14,12 @@ export const dockCheck = writable<DockCheck | null>(null);
 let current: DockCheck | null = null;
 let endedTimer: ReturnType<typeof setTimeout> | undefined;
 
-function show(next: DockCheck | null, buzz = false) {
+// The ended, stuck and problem steps also reach the rider as a notification (trip-notify.ts watches this store)
+function show(next: DockCheck | null) {
 	clearTimeout(endedTimer);
 	endedTimer = undefined;
 	current = next;
 	dockCheck.set(next);
-	if (buzz) vibrate();
-}
-
-function vibrate() {
-	try {
-		navigator.vibrate?.([120, 80, 120]);
-	} catch {
-		// Not every WebView lets a page vibrate; the card is enough on its own
-	}
 }
 
 /** The trip's bike reported being docked with no trip. A problem card gives way to it: the bike locked after all. */
@@ -39,19 +31,19 @@ export function dockSignalled(tripCode: string) {
 /** The trip stayed open long after its bike reported being docked. */
 export function dockStuck(tripCode: string) {
 	if (current?.tripCode !== tripCode || current.kind === 'stuck') return;
-	show({ kind: 'stuck', tripCode }, true);
+	show({ kind: 'stuck', tripCode });
 }
 
 /** The bike reported it couldn't end the trip. */
 export function dockProblem(tripCode: string) {
 	if (current?.tripCode === tripCode && current.kind === 'problem') return;
-	show({ kind: 'problem', tripCode }, true);
+	show({ kind: 'problem', tripCode });
 }
 
 /** The trip ended. Says so only if the card was already following that trip, then clears itself. */
 export function dockTripEnded(tripCode: string) {
 	if (current?.tripCode !== tripCode || current.kind === 'ended') return;
-	show({ kind: 'ended', tripCode }, true);
+	show({ kind: 'ended', tripCode });
 	endedTimer = setTimeout(() => show(null), ENDED_SHOWN_MS);
 }
 

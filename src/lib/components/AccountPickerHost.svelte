@@ -1,10 +1,11 @@
 <script lang="ts">
-	// Gira+ Multi: loads the saved accounts, starts the trip log, and shows the account picker when something asks for it
+	// Gira+ Multi: loads the saved accounts, starts the trip log and the trip-end notifications, and shows the account picker when something asks for it
 	import { userCredentials } from '$lib/account';
 	import { accountPicker, initAccounts, type AccountPickerRequest } from '$lib/accounts';
 	import { dockCheck } from '$lib/dock-check';
 	import { currentTrip } from '$lib/trip';
 	import { followTrips, loadTripLog } from '$lib/trip-log';
+	import { initTripNotifications } from '$lib/trip-notify';
 	import { get } from 'svelte/store';
 	import AccountPicker from '$lib/components/AccountPicker.svelte';
 	import { enqueueDialog } from '$lib/ui.svelte';
@@ -16,7 +17,9 @@
 		const tracking = initAccounts();
 		// Loaded first, so what it follows isn't overwritten by the stored log
 		const logging = loadTripLog().then(() => followTrips(currentTrip, dockCheck, () => get(userCredentials)?.email ?? null));
+		const stopNotifications = initTripNotifications(dockCheck, currentTrip);
 		return () => {
+			stopNotifications();
 			void tracking.then(stop => stop());
 			void logging.then(stop => stop());
 		};
