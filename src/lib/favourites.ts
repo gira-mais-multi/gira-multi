@@ -112,17 +112,22 @@ export function withoutFavourites(history: SearchHistoryEntry[], list: Favourite
 	return history.filter(entry => !list.some(f => samePlace(f.destination, entry)));
 }
 
-/** The named favourite for a station, used by the star on its sheet. */
+/** The favourite for a station, used by the star on its sheet: its named one first, else a Home or Work there. */
 export function stationFavourite(list: Favourite[], stationSerial: string | null) {
 	if (!stationSerial) return null;
-	return list.find(f => f.kind === 'other' && f.destination.type === 'station' && f.destination.stationSerial === stationSerial) ?? null;
+	const here = list.filter(f => f.destination.type === 'station' && f.destination.stationSerial === stationSerial);
+	return here.find(f => f.kind === 'other') ?? here[0] ?? null;
 }
 
-/** The star on a station's sheet: saves the station under its own name, or removes it when already saved. */
+/**
+ * The star on a station's sheet: saves the station under its own name, or removes it when already saved. A station
+ * saved as Home or Work isn't removed by a tap; its menu opens instead (rename, change place, remove).
+ */
 export async function toggleStationFavourite(destination: SearchHistoryEntry & { type: 'station' }) {
 	await loadFavourites();
 	const old = stationFavourite(get(favourites), destination.stationSerial);
-	if (old) await removeFavourite(old.id);
+	if (old?.kind === 'other') await removeFavourite(old.id);
+	else if (old) favouriteMenu.set({ kind: 'edit', favourite: old });
 	else await saveFavourite(destination, 'other');
 }
 

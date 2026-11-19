@@ -12,6 +12,8 @@ export type DockCheck = { kind: DockCheckKind, tripCode: string };
 export const dockCheck = writable<DockCheck | null>(null);
 
 let current: DockCheck | null = null;
+/** A stuck or problem card the rider dismissed: its trip's end still says so, replacing that notification. */
+let dismissed: string | null = null;
 let endedTimer: ReturnType<typeof setTimeout> | undefined;
 
 // The ended, stuck and problem steps also reach the rider as a notification (trip-notify.ts watches this store)
@@ -42,18 +44,22 @@ export function dockProblem(tripCode: string) {
 
 /** The trip ended. Says so only if the card was already following that trip, then clears itself. */
 export function dockTripEnded(tripCode: string) {
-	if (current?.tripCode !== tripCode || current.kind === 'ended') return;
+	const following = current?.tripCode === tripCode || dismissed === tripCode;
+	if (!following || current?.kind === 'ended') return;
+	dismissed = null;
 	show({ kind: 'ended', tripCode });
 	endedTimer = setTimeout(() => show(null), ENDED_SHOWN_MS);
 }
 
 /** The trip is no longer followed (account switch, sync stopped). "Trip ended" is left to clear itself. */
 export function dockCheckReset() {
+	dismissed = null;
 	if (current?.kind === 'ended') return;
 	show(null);
 }
 
 /** "Not now" on the card. */
 export function dismissDockCheck() {
+	if (current?.kind === 'stuck' || current?.kind === 'problem') dismissed = current.tripCode;
 	show(null);
 }

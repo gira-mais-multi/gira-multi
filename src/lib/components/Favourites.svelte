@@ -4,13 +4,14 @@
 	// a recent search; press and hold to rename, change the place or remove.
 	import { favouriteLabel, favouriteMenu, replacing, sortedFavourites, takeHintShowing, type Favourite } from '$lib/favourites';
 	import { hold } from '$lib/hold';
-	import { stations } from '$lib/map.svelte';
-	import type { SearchHistoryEntry } from '$lib/search-history';
+	import { dismissSearchBar } from '$lib/components/SearchBar.svelte';
+	import { selectedStation, stations } from '$lib/map.svelte';
+	import { routeDestination } from '$lib/routing';
 	import { t } from '$lib/translations';
 	import { IconBike, IconBriefcase, IconHome, IconParking, IconStarFilled } from '@tabler/icons-svelte';
 	import { onMount } from 'svelte';
 
-	let { onselect, recents }: { onselect: (entry: SearchHistoryEntry) => void, recents: boolean } = $props();
+	let { recents }: { recents: boolean } = $props();
 
 	let hint = $state(false);
 	onMount(() => {
@@ -18,6 +19,19 @@
 	});
 
 	const shown = $derived($replacing ? [] : $sortedFavourites);
+
+	/**
+	 * Goes there like a recent search (a live station also opens its sheet), without adding it to the recent searches:
+	 * the row already shows it, and it would push real recents out of Gira+'s ten.
+	 */
+	function go(favourite: Favourite) {
+		const destination = favourite.destination;
+		const station = destination.type === 'station' && stations.value.find(s => s.serialNumber === destination.stationSerial && s.assetStatus === 'active');
+		selectedStation.set(station ? station.serialNumber : null);
+		if (station) routeDestination.set({ type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber });
+		else routeDestination.set({ type: 'location', lat: destination.lat, lng: destination.lng, name: destination.name });
+		dismissSearchBar();
+	}
 
 	/** A saved station's live state: its bikes and docks, closed when it's out of service, or null while loading. */
 	function live(favourite: Favourite) {
@@ -40,7 +54,7 @@
 	<div class="flex gap-1 overflow-x-auto px-2 pt-1 pb-2" style:scrollbar-width="none">
 		{#each shown as favourite (favourite.id)}
 			{@const state = live(favourite)}
-			<button class="flex flex-col items-center w-[58px] shrink-0 py-1" onclick={() => onselect(favourite.destination)}
+			<button class="flex flex-col items-center w-[58px] shrink-0 py-1" onclick={() => go(favourite)}
 				use:hold={() => favouriteMenu.set({ kind: 'edit', favourite })} aria-label={$favouriteLabel(favourite)}>
 				<span class="flex items-center justify-center w-11 h-11 rounded-full {state === 'closed' ? 'bg-label' : 'bg-primary'}">
 					{#if favourite.kind === 'home'}

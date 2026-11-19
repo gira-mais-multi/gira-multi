@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { dismissDockCheck, dockCheck, dockCheckReset, dockProblem, dockSignalled, dockStuck, dockTripEnded, ENDED_SHOWN_MS } from './dock-check';
+import { get } from 'svelte/store';
 import { appSettings } from './settings';
+import { t } from './translations';
 import { alertText, notificationId, watchDockAlerts, type TripAlert } from './trip-notify';
 
 describe('trip-end notifications', () => {
@@ -16,6 +18,7 @@ describe('trip-end notifications', () => {
 	afterEach(() => {
 		stop();
 		dismissDockCheck();
+		dockCheckReset();
 		vi.useRealTimers();
 	});
 
@@ -68,10 +71,21 @@ describe('trip-end notifications', () => {
 		}
 	});
 
-	it('says when the trip ended, in the app language', () => {
+	it('says when the trip ended, with the card title in the app language', () => {
 		appSettings.set({ locale: 'pt' } as never);
-		expect(alertText('ended', new Date(2026, 10, 18, 14, 5))).toEqual({ title: 'Viagem terminada', body: 'Terminou às 14:05.' });
+		const ended = alertText('ended', new Date(2026, 10, 18, 14, 5));
+		expect(ended.title).toBe(get(t)('multi_dock_ended_title'));
+		expect(ended.body).toContain('14:05');
 		appSettings.set({ locale: 'en' } as never);
-		expect(alertText('stuck').title).toBe("The trip hasn't ended");
+		expect(alertText('stuck').title).toBe(get(t)('multi_dock_stuck_title'));
+		expect(get(t)('multi_dock_stuck_title')).not.toBe(get(t)('multi_dock_ended_title'));
+	});
+
+	it('still says the trip ended after the rider dismissed the stuck card, replacing that notification', () => {
+		dockSignalled('46');
+		dockStuck('46');
+		dismissDockCheck();
+		dockTripEnded('46');
+		expect(sent.map(alert => [alert.kind, alert.id])).toEqual([['stuck', notificationId('46')], ['ended', notificationId('46')]]);
 	});
 });

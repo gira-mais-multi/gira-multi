@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { get } from 'svelte/store';
 import {
-	favourites, loadFavourites, removeFavourite, renameFavourite, replacing, resetFavouritesForTest, saveFavourite,
+	favouriteMenu, favourites, loadFavourites, removeFavourite, renameFavourite, replacing, resetFavouritesForTest, saveFavourite,
 	sortedFavourites, stationFavourite, takeHintShowing, toggleStationFavourite, withoutFavourites,
 } from '$lib/favourites';
 import { routeDestination } from '$lib/routing';
@@ -77,6 +77,16 @@ describe('favourites', () => {
 		await toggleStationFavourite(sodre);
 		await restart();
 		expect(get(favourites)).toEqual([]);
+	});
+
+	it('the star on a station saved as Home shows it saved and opens its menu instead of adding a copy', async () => {
+		await saveFavourite(sodre, 'home');
+		expect(stationFavourite(get(favourites), 'sodre')?.kind).toBe('home');
+		await toggleStationFavourite(sodre);
+		await restart();
+		expect(get(favourites).map(f => f.kind)).toEqual(['home']);
+		expect(get(favouriteMenu)).toMatchObject({ kind: 'edit', favourite: { kind: 'home' } });
+		favouriteMenu.set(null);
 	});
 
 	it('shows the "hold to save" hint in three app sessions, however often the search opens, and not once something is saved', async () => {

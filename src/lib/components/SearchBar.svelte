@@ -291,7 +291,7 @@
 							{#if showingResults}
 								<div class="max-h-[40vh] overflow-y-auto py-2">
 									{#if showingHistory}
-										<Favourites onselect={selectHistoryEntry} recents={recents.length > 0} />
+										<Favourites recents={recents.length > 0} />
 										{#each recents as entry}
 											<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectHistoryEntry(entry)} use:hold={() => favouriteMenu.set({ kind: 'save', destination: entry })}>
 												<IconHistory class="text-label shrink-0" size="20" stroke="2" />
