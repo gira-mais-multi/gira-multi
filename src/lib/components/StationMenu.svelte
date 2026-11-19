@@ -13,6 +13,7 @@
 	import { safeInsets } from '$lib/ui.svelte';
 	import { distanceBetweenCoords, formatDistance } from '$lib/utils';
 	import IncomingBike from '$lib/components/IncomingBike.svelte';
+	import StationStar from '$lib/components/StationStar.svelte'; // Gira+ Multi
 	import { onMount, tick } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { Tween } from 'svelte/motion';
@@ -292,6 +293,7 @@
 					{#if distance}
 						<span transition:fade={{ duration: 150 }} class="font-semibold bg-background-secondary text-xs text-info px-1 py-[1px] rounded">{formatDistance(distance)}</span>
 					{/if}
+					<StationStar {station} /><!-- Gira+ Multi -->
 				</div>
 				<span class="text-xs font-medium text-label leading-none mt-[2px]">{name}</span>
 			</div>

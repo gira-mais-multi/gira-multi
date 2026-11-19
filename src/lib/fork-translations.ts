@@ -229,4 +229,64 @@ export const forkTranslations = {
 		en: 'Not your trip? Switch account',
 		pt: 'Não é a sua viagem? Mudar de conta',
 	},
+	multi_fav_section: {
+		en: 'Favourites',
+		pt: 'Favoritos',
+	},
+	multi_fav_recent_section: {
+		en: 'Recent',
+		pt: 'Recentes',
+	},
+	multi_fav_home: {
+		en: 'Home',
+		pt: 'Casa',
+	},
+	multi_fav_work: {
+		en: 'Work',
+		pt: 'Trabalho',
+	},
+	multi_fav_other: {
+		en: 'Favourite…',
+		pt: 'Favorito…',
+	},
+	multi_fav_save_as: {
+		en: 'Save as',
+		pt: 'Guardar como',
+	},
+	multi_fav_replaces: {
+		en: 'Replaces {{name}}',
+		pt: 'Substitui {{name}}',
+	},
+	multi_fav_name_title: {
+		en: 'Name',
+		pt: 'Nome',
+	},
+	multi_fav_rename: {
+		en: 'Rename',
+		pt: 'Mudar o nome',
+	},
+	multi_fav_replace: {
+		en: 'Change place',
+		pt: 'Mudar o local',
+	},
+	multi_fav_remove: {
+		en: 'Remove',
+		pt: 'Remover',
+	},
+	multi_fav_replace_placeholder: {
+		en: 'New place for {{name}}',
+		pt: 'Novo local para {{name}}',
+	},
+	multi_fav_hint: {
+		en: 'Press and hold a result to save it',
+		pt: 'Mantenha premido um resultado para o guardar',
+	},
+	multi_fav_star_add: {
+		en: 'Add to favourites',
+		pt: 'Adicionar aos favoritos',
+	},
+	multi_fav_star_remove: {
+		en: 'Remove from favourites',
+		pt: 'Remover dos favoritos',
+	},
 } as const;

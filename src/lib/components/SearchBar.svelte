@@ -8,6 +8,12 @@
 	export function dismissSearchBar(): boolean {
 		return dismiss?.() ?? false;
 	}
+
+	// Gira+ Multi: opened by the favourites menu's "Change place"
+	let focus: (() => void)|null = null;
+	export function focusSearchBar() {
+		focus?.();
+	}
 </script>
 
 <script lang="ts">
@@ -24,6 +30,10 @@
 	import { IconBike, IconChevronRight, IconHistory, IconMapPin, IconSearch, IconWalk, IconX } from '@tabler/icons-svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { get } from 'svelte/store';
+	// Gira+ Multi: favourites on top of the list; holding a row saves it
+	import Favourites from '$lib/components/Favourites.svelte';
+	import { favouriteMenu, favourites, replacingPlaceholder } from '$lib/favourites';
+	import { hold } from '$lib/hold';
 
 	interface Props {
 		/** Collapse into a round search button until tapped (landscape trips,
@@ -46,7 +56,8 @@
 		expanded = true;
 		input?.focus();
 	}
-	const showingHistory = $derived(focused && query.trim().length < 2 && $searchHistory.length > 0);
+	focus = expand;
+	const showingHistory = $derived(focused && query.trim().length < 2 && ($searchHistory.length > 0 || $favourites.length > 0));
 	const showingResults = $derived(focused && (results != null || stationResults.length > 0 || showingHistory));
 	let debounce: ReturnType<typeof setTimeout>;
 
@@ -247,7 +258,7 @@
 				}, 150)}
 				type="text"
 				enterkeyhint="search"
-				placeholder={$t('search_placeholder')}
+				placeholder={$replacingPlaceholder ?? $t('search_placeholder')}
 				class="grow min-w-0 bg-transparent border-none focus:ring-0 p-0 text-info placeholder-label font-medium transition-opacity duration-200 {collapsed ? 'opacity-0' : ''}"
 			/>
 			{#if query.length > 0 || $routeDestination != null}
@@ -279,15 +290,16 @@
 							{#if showingResults}
 								<div class="max-h-[40vh] overflow-y-auto py-2">
 									{#if showingHistory}
+										<Favourites onselect={selectHistoryEntry} recents={$searchHistory.length > 0} />
 										{#each $searchHistory as entry}
-											<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectHistoryEntry(entry)}>
+											<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectHistoryEntry(entry)} use:hold={() => favouriteMenu.set({ kind: 'save', destination: entry })}>
 												<IconHistory class="text-label shrink-0" size="20" stroke="2" />
 												<span class="text-info font-semibold text-sm truncate">{entry.name}</span>
 											</button>
 										{/each}
 									{/if}
 									{#each stationResults as station}
-										<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectStation(station)}>
+										<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectStation(station)} use:hold={() => favouriteMenu.set({ kind: 'save', destination: { type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber } })}>
 											<IconBike class="text-label shrink-0" size="20" stroke="2" />
 											<div class="flex flex-col min-w-0">
 												<span class="text-info font-semibold text-sm truncate">{station.name}</span>
@@ -296,7 +308,7 @@
 										</button>
 									{/each}
 									{#each results ?? [] as result}
-										<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => select(result)}>
+										<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => select(result)} use:hold={() => favouriteMenu.set({ kind: 'save', destination: { type: 'location', lat: result.lat, lng: result.lng, name: result.name } })}>
 											<IconMapPin class="text-label shrink-0" size="20" stroke="2" />
 											<div class="flex flex-col min-w-0">
 												<span class="text-info font-semibold text-sm truncate">{result.name}</span>
