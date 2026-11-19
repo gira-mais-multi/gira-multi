@@ -8,7 +8,7 @@ import { t } from './translations';
 
 const STORAGE_KEY = 'multiFavourites';
 const HINT_KEY = 'multiFavouritesHint';
-/** The "hold a result to save it" hint shows on this many search openings, while nothing is saved. */
+/** The "hold a result to save it" hint shows in this many app sessions, while nothing is saved. */
 const HINT_SHOWINGS = 3;
 
 export type FavouriteKind = 'home' | 'work' | 'other';
@@ -55,6 +55,7 @@ export function resetFavouritesForTest() {
 	favourites.set([]);
 	replacing.set(null);
 	hintShowings = null;
+	hintThisSession = false;
 }
 
 async function change(next: (list: Favourite[]) => Favourite[]) {
@@ -106,6 +107,11 @@ export function removeFavourite(id: string) {
 	return change(list => list.filter(f => f.id !== id));
 }
 
+/** Recent searches without the places already saved as favourites, which the row above already shows. */
+export function withoutFavourites(history: SearchHistoryEntry[], list: Favourite[]) {
+	return history.filter(entry => !list.some(f => samePlace(f.destination, entry)));
+}
+
 /** The named favourite for a station, used by the star on its sheet. */
 export function stationFavourite(list: Favourite[], stationSerial: string | null) {
 	if (!stationSerial) return null;
@@ -145,11 +151,13 @@ routeDestination.subscribe(destination => {
 });
 
 let hintShowings: number | null = null;
+let hintThisSession = false;
 
-/** Whether the search should show the "hold a result to save it" hint this time; counts the showing. */
+/** Whether the search should show the "hold a result to save it" hint; counts once per app session. */
 export async function takeHintShowing(): Promise<boolean> {
 	await loadFavourites();
 	if (get(favourites).length > 0) return false;
+	if (hintThisSession) return true;
 	if (hintShowings == null) {
 		try {
 			const { value } = await Preferences.get({ key: HINT_KEY });
@@ -160,6 +168,7 @@ export async function takeHintShowing(): Promise<boolean> {
 	}
 	if (hintShowings >= HINT_SHOWINGS) return false;
 	hintShowings++;
+	hintThisSession = true;
 	await Preferences.set({ key: HINT_KEY, value: String(hintShowings) });
 	return true;
 }

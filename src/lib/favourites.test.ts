@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { get } from 'svelte/store';
 import {
 	favourites, loadFavourites, removeFavourite, renameFavourite, replacing, resetFavouritesForTest, saveFavourite,
-	sortedFavourites, stationFavourite, takeHintShowing, toggleStationFavourite,
+	sortedFavourites, stationFavourite, takeHintShowing, toggleStationFavourite, withoutFavourites,
 } from '$lib/favourites';
 import { routeDestination } from '$lib/routing';
 import type { SearchHistoryEntry } from '$lib/search-history';
@@ -79,14 +79,24 @@ describe('favourites', () => {
 		expect(get(favourites)).toEqual([]);
 	});
 
-	it('shows the "hold to save" hint on three openings, and not once something is saved', async () => {
-		const shown = [];
-		for (let i = 0; i < 4; i++) shown.push(await takeHintShowing());
-		expect(shown).toEqual([true, true, true, false]);
+	it('shows the "hold to save" hint in three app sessions, however often the search opens, and not once something is saved', async () => {
+		const sessions = [];
+		for (let i = 0; i < 4; i++) {
+			await restart();
+			sessions.push([await takeHintShowing(), await takeHintShowing(), await takeHintShowing()]);
+		}
+		expect(sessions).toEqual([[true, true, true], [true, true, true], [true, true, true], [false, false, false]]);
 
 		localStorage.clear();
 		resetFavouritesForTest();
 		await saveFavourite(place('Rossio'), 'other');
 		expect(await takeHintShowing()).toBe(false);
+	});
+
+	it('leaves places already saved as favourites out of the recent searches', async () => {
+		await saveFavourite(place('Rua de Casa', 38.71), 'home');
+		await saveFavourite(sodre, 'other', 'Cais');
+		const history = [place('Rua de Casa', 38.71), place('Rossio', 38.714), { ...sodre }];
+		expect(withoutFavourites(history, get(favourites)).map(e => e.name)).toEqual(['Rossio']);
 	});
 });

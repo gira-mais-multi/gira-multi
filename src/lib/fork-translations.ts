@@ -229,14 +229,6 @@ export const forkTranslations = {
 		en: 'Not your trip? Switch account',
 		pt: 'Não é a sua viagem? Mudar de conta',
 	},
-	multi_fav_section: {
-		en: 'Favourites',
-		pt: 'Favoritos',
-	},
-	multi_fav_recent_section: {
-		en: 'Recent',
-		pt: 'Recentes',
-	},
 	multi_fav_home: {
 		en: 'Home',
 		pt: 'Casa',
@@ -288,5 +280,9 @@ export const forkTranslations = {
 	multi_fav_star_remove: {
 		en: 'Remove from favourites',
 		pt: 'Remover dos favoritos',
+	},
+	multi_fav_station_closed: {
+		en: 'Closed',
+		pt: 'Fechada',
 	},
 } as const;

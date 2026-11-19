@@ -32,7 +32,7 @@
 	import { get } from 'svelte/store';
 	// Gira+ Multi: favourites on top of the list; holding a row saves it
 	import Favourites from '$lib/components/Favourites.svelte';
-	import { favouriteMenu, favourites, replacingPlaceholder } from '$lib/favourites';
+	import { favouriteMenu, favourites, replacingPlaceholder, withoutFavourites } from '$lib/favourites';
 	import { hold } from '$lib/hold';
 
 	interface Props {
@@ -57,7 +57,8 @@
 		input?.focus();
 	}
 	focus = expand;
-	const showingHistory = $derived(focused && query.trim().length < 2 && ($searchHistory.length > 0 || $favourites.length > 0));
+	const recents = $derived(withoutFavourites($searchHistory, $favourites));
+	const showingHistory = $derived(focused && query.trim().length < 2 && (recents.length > 0 || $favourites.length > 0));
 	const showingResults = $derived(focused && (results != null || stationResults.length > 0 || showingHistory));
 	let debounce: ReturnType<typeof setTimeout>;
 
@@ -290,8 +291,8 @@
 							{#if showingResults}
 								<div class="max-h-[40vh] overflow-y-auto py-2">
 									{#if showingHistory}
-										<Favourites onselect={selectHistoryEntry} recents={$searchHistory.length > 0} />
-										{#each $searchHistory as entry}
+										<Favourites onselect={selectHistoryEntry} recents={recents.length > 0} />
+										{#each recents as entry}
 											<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectHistoryEntry(entry)} use:hold={() => favouriteMenu.set({ kind: 'save', destination: entry })}>
 												<IconHistory class="text-label shrink-0" size="20" stroke="2" />
 												<span class="text-info font-semibold text-sm truncate">{entry.name}</span>
