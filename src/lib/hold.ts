@@ -1,7 +1,7 @@
 // Gira+ Multi: a press-and-hold action. The click that ends a hold is swallowed wherever it lands, so holding an
 // element that also reacts to taps (an account row switches on tap) doesn't do both, and lifting the finger doesn't
 // press what the hold just opened under it (a sheet's "Home" row). While the finger rests on it, the element gets
-// `data-holding` and, unless `press: false`, Gira+'s press colour; the phone gives a short buzz when the hold fires.
+// `data-holding` and, unless `press: false`, Gira+'s press colour. No buzz: Gira+ itself never vibrates.
 const HOLD_MS = 500;
 /** The press feedback starts this long after the finger lands, so a quick tap or a scroll doesn't flash it. */
 const FEEDBACK_MS = 120;
@@ -9,18 +9,6 @@ const FEEDBACK_MS = 120;
 const MOVE_TOLERANCE_PX = 10;
 /** After the finger lifts, how long its click can still arrive. */
 const CLICK_WINDOW_MS = 500;
-/** The buzz, in ms. Tweak here if it isn't felt (15-20). */
-const BUZZ_MS = 10;
-
-/** A short buzz, where the phone allows it (needs the VIBRATE permission on Android). */
-export function buzz() {
-	try {
-		navigator.vibrate?.(BUZZ_MS);
-	} catch {
-		// not supported
-	}
-}
-
 /**
  * Swallows the click that the finger ending a hold sends, wherever it lands. `lifted`: the finger already lifted,
  * so the click can only come within the next moment.
@@ -82,7 +70,6 @@ export function hold(node: HTMLElement, param: (() => void) | HoldOptions) {
 		timer = setTimeout(() => {
 			cancel();
 			swallowReleaseClick();
-			buzz();
 			options.onHold();
 		}, HOLD_MS);
 	};

@@ -3,7 +3,6 @@
 import { Preferences } from '@capacitor/preferences';
 import { derived, get, writable } from 'svelte/store';
 import type { SearchHistoryEntry } from './search-history';
-import { buzz } from './hold';
 import { reverseGeocode } from './geocoding';
 import { t } from './translations';
 
@@ -270,10 +269,9 @@ export async function choosePicked(current: Pick, destination: SearchHistoryEntr
 export type SavedNotice = { kind: FavouriteKind, name?: string } | { moved: Favourite };
 export const favouriteNotice = writable<(SavedNotice & { id: number }) | null>(null);
 
-/** Confirms a save: the notice and a short buzz. */
+/** Confirms a save with the notice. */
 export function confirmSaved(notice: SavedNotice) {
 	favouriteNotice.set({ ...notice, id: Date.now() });
-	buzz();
 }
 
 function finishPick(current: Pick, destination: SearchHistoryEntry) {
@@ -316,8 +314,7 @@ export function takeMapSpot(lat: number, lng: number): boolean {
 	if (!current) return false;
 	pick.set(null);
 	lastPickAt = Date.now();
-	buzz();
-	// The buzz came at once; the address gets a few seconds, then the coordinates name the place
+	// The address gets a few seconds, then the coordinates name the place
 	void Promise.race([reverseGeocode({ lat, lng }), new Promise<null>(resolve => setTimeout(() => resolve(null), ADDRESS_WAIT_MS))])
 		.catch(() => null)
 		.then(name => finishPick(current, { type: 'location', lat, lng, name: name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}` }));
