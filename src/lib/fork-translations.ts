@@ -337,4 +337,36 @@ export const forkTranslations = {
 		en: 'Hold a spot on the map',
 		pt: 'Mantenha premido no mapa',
 	},
+	multi_bolacha_order: {
+		en: 'Order bolacha Maria',
+		pt: 'Encomendar bolacha Maria',
+	},
+	multi_bolacha_pack: {
+		en: '1 pack',
+		pt: '1 pacote',
+	},
+	multi_bolacha_packs: {
+		en: '{{count}} packs',
+		pt: '{{count}} pacotes',
+	},
+	multi_bolacha_fetched: {
+		en: 'The developers went to get biscuits.',
+		pt: 'Os programadores foram buscar bolachas.',
+	},
+	multi_bolacha_new: {
+		en: 'New',
+		pt: 'Novo',
+	},
+	multi_bolacha_taps_left: {
+		en: '{{count}} taps away from being a baker.',
+		pt: 'Faltam {{count}} toques para ser padeiro.',
+	},
+	multi_bolacha_tap_left: {
+		en: '1 tap away from being a baker.',
+		pt: 'Falta 1 toque para ser padeiro.',
+	},
+	multi_bolacha_baker: {
+		en: 'You are now a baker.',
+		pt: 'Agora é padeiro.',
+	},
 } as const;

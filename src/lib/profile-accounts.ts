@@ -5,6 +5,7 @@
 import { userCredentials } from '$lib/account';
 import type { AccountSnapshot } from '$lib/gira-api/models';
 import { mainAccount, sameEmail, savedAccounts } from '$lib/accounts';
+import { bakerTap } from '$lib/bolacha';
 import { hold } from '$lib/hold';
 import { SIDEWAYS_COMMIT_PX, swipeSideways } from '$lib/swipe';
 import { get, writable } from 'svelte/store';
@@ -120,11 +121,14 @@ export function profileHeader(node: HTMLElement) {
 	});
 
 	const held = hold(node, toggleMain);
+	// Seven taps make the bolacha Maria row appear ($lib/bolacha)
+	node.addEventListener('click', bakerTap);
 
 	return {
 		destroy() {
 			drag.destroy();
 			held.destroy();
+			node.removeEventListener('click', bakerTap);
 			stopPage();
 			stopPending();
 			stopAccount();

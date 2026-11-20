@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { accountInfo, user } from '$lib/account';
 	import ProfileAccounts from '$lib/components/ProfileAccounts.svelte';
+	import BakerEntry from '$lib/components/BakerEntry.svelte'; // Gira+ Multi
 	import ProfileMainCaption from '$lib/components/ProfileMainCaption.svelte';
 	import { newAccountPage, profileHeader, requestSignOut } from '$lib/profile-accounts';
 	import Metric from '$lib/components/Metric.svelte';
@@ -82,6 +83,7 @@
 				</div>
 				<ProfileAccounts {onclose} />
 				<div class="flex flex-col font-semibold px-2 gap-3 w-full">
+					<BakerEntry /><!-- Gira+ Multi: hidden until 7 taps on the header -->
 					<ProfileMenuEntry icon={IconHistory} text={$t('history_label')} subtext={$t('history_subtext')} onclick={() => openPage = 'history'} />
 					<ProfileMenuEntry icon={IconTool} text={$t('settings_label')} subtext={$t('settings_subtext')} onclick={() => openPage = 'settings'} />
 					<ProfileMenuEntry icon={IconMessageReport} text={$t('feedback_label')} subtext={$t('feedback_subtext')} external onclick={() => enqueueDialog(feedbackWarning)} />
