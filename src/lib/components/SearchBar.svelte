@@ -9,7 +9,7 @@
 		return dismiss?.() ?? false;
 	}
 
-	// Gira+ Multi: opened by the favourites menu's "Change place"
+	// Gira+ Multi: opened to pick a place for a favourite
 	let focus: (() => void)|null = null;
 	export function focusSearchBar() {
 		focus?.();
@@ -32,7 +32,8 @@
 	import { get } from 'svelte/store';
 	// Gira+ Multi: favourites on top of the list; holding a row saves it
 	import Favourites from '$lib/components/Favourites.svelte';
-	import { favouriteMenu, favourites, replacingPlaceholder, withoutFavourites } from '$lib/favourites';
+	import FavouritePickLine from '$lib/components/FavouritePickLine.svelte';
+	import { favourites, holdToSave, pickPlaceholder, withoutFavourites } from '$lib/favourites';
 	import { hold } from '$lib/hold';
 
 	interface Props {
@@ -58,7 +59,7 @@
 	}
 	focus = expand;
 	const recents = $derived(withoutFavourites($searchHistory, $favourites));
-	const showingHistory = $derived(focused && query.trim().length < 2 && (recents.length > 0 || $favourites.length > 0));
+	const showingHistory = $derived(focused && query.trim().length < 2); // Gira+ Multi: the favourites row always shows
 	const showingResults = $derived(focused && (results != null || stationResults.length > 0 || showingHistory));
 	let debounce: ReturnType<typeof setTimeout>;
 
@@ -259,7 +260,7 @@
 				}, 150)}
 				type="text"
 				enterkeyhint="search"
-				placeholder={$replacingPlaceholder ?? $t('search_placeholder')}
+				placeholder={$pickPlaceholder ?? $t('search_placeholder')}
 				class="grow min-w-0 bg-transparent border-none focus:ring-0 p-0 text-info placeholder-label font-medium transition-opacity duration-200 {collapsed ? 'opacity-0' : ''}"
 			/>
 			{#if query.length > 0 || $routeDestination != null}
@@ -290,17 +291,18 @@
 						<div bind:clientHeight={contentHeight}>
 							{#if showingResults}
 								<div class="max-h-[40vh] overflow-y-auto py-2">
+									<FavouritePickLine /><!-- Gira+ Multi -->
 									{#if showingHistory}
 										<Favourites recents={recents.length > 0} />
 										{#each recents as entry}
-											<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectHistoryEntry(entry)} use:hold={() => favouriteMenu.set({ kind: 'save', destination: entry })}>
+											<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectHistoryEntry(entry)} use:hold={() => holdToSave(entry)}>
 												<IconHistory class="text-label shrink-0" size="20" stroke="2" />
 												<span class="text-info font-semibold text-sm truncate">{entry.name}</span>
 											</button>
 										{/each}
 									{/if}
 									{#each stationResults as station}
-										<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectStation(station)} use:hold={() => favouriteMenu.set({ kind: 'save', destination: { type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber } })}>
+										<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => selectStation(station)} use:hold={() => holdToSave({ type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber })}>
 											<IconBike class="text-label shrink-0" size="20" stroke="2" />
 											<div class="flex flex-col min-w-0">
 												<span class="text-info font-semibold text-sm truncate">{station.name}</span>
@@ -309,7 +311,7 @@
 										</button>
 									{/each}
 									{#each results ?? [] as result}
-										<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => select(result)} use:hold={() => favouriteMenu.set({ kind: 'save', destination: { type: 'location', lat: result.lat, lng: result.lng, name: result.name } })}>
+										<button class="flex items-center gap-3 w-full px-4 py-2 text-left" onclick={() => select(result)} use:hold={() => holdToSave({ type: 'location', lat: result.lat, lng: result.lng, name: result.name })}>
 											<IconMapPin class="text-label shrink-0" size="20" stroke="2" />
 											<div class="flex flex-col min-w-0">
 												<span class="text-info font-semibold text-sm truncate">{result.name}</span>

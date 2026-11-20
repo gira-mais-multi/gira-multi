@@ -238,24 +238,20 @@ export const forkTranslations = {
 		pt: 'Trabalho',
 	},
 	multi_fav_other: {
-		en: 'Favourite…',
-		pt: 'Favorito…',
+		en: 'Other',
+		pt: 'Outro',
 	},
 	multi_fav_save_as: {
 		en: 'Save as',
 		pt: 'Guardar como',
 	},
 	multi_fav_replaces: {
-		en: 'Replaces {{name}}',
-		pt: 'Substitui {{name}}',
-	},
-	multi_fav_name_title: {
-		en: 'Name',
-		pt: 'Nome',
+		en: 'Replaces: {{name}}',
+		pt: 'Substitui: {{name}}',
 	},
 	multi_fav_rename: {
-		en: 'Rename',
-		pt: 'Mudar o nome',
+		en: 'Name',
+		pt: 'Nome',
 	},
 	multi_fav_replace: {
 		en: 'Change place',
@@ -269,20 +265,64 @@ export const forkTranslations = {
 		en: 'New place for {{name}}',
 		pt: 'Novo local para {{name}}',
 	},
-	multi_fav_hint: {
-		en: 'Press and hold a result to save it',
-		pt: 'Mantenha premido um resultado para o guardar',
-	},
-	multi_fav_star_add: {
-		en: 'Add to favourites',
-		pt: 'Adicionar aos favoritos',
-	},
-	multi_fav_star_remove: {
-		en: 'Remove from favourites',
-		pt: 'Remover dos favoritos',
-	},
 	multi_fav_station_closed: {
 		en: 'Closed',
 		pt: 'Fechada',
+	},
+	multi_fav_name_icon: {
+		en: 'Name and icon',
+		pt: 'Nome e ícone',
+	},
+	multi_fav_other_sub: {
+		en: 'Give it a name and icon',
+		pt: 'Dar nome e ícone',
+	},
+	multi_fav_other_sub_station: {
+		en: 'Give it a name',
+		pt: 'Dar nome',
+	},
+	multi_fav_stops_being: {
+		en: 'No longer {{name}}',
+		pt: 'Deixa de ser {{name}}',
+	},
+	multi_fav_unset_home: {
+		en: 'Not set yet',
+		pt: 'Ainda não definida',
+	},
+	multi_fav_unset_work: {
+		en: 'Not set yet',
+		pt: 'Ainda não definido',
+	},
+	multi_fav_add: {
+		en: 'Add',
+		pt: 'Adicionar',
+	},
+	multi_fav_picking: {
+		en: 'Choosing {{name}}',
+		pt: 'A escolher {{name}}',
+	},
+	multi_fav_picking_add: {
+		en: 'Choosing a place to save',
+		pt: 'A escolher um local a guardar',
+	},
+	multi_fav_pick_add_placeholder: {
+		en: 'Search for a place to save',
+		pt: 'Procurar um local a guardar',
+	},
+	multi_fav_remove_confirm: {
+		en: 'Tap again to remove',
+		pt: 'Toque de novo para remover',
+	},
+	multi_fav_bikes_short: {
+		en: 'Bikes',
+		pt: 'Bic.',
+	},
+	multi_fav_docks_short: {
+		en: 'Docks',
+		pt: 'Docas',
+	},
+	multi_fav_saved: {
+		en: 'Saved',
+		pt: 'Guardada',
 	},
 } as const;

@@ -1,24 +1,28 @@
 <script lang="ts">
-	// Gira+ Multi: the favourites at the top of the search list, as one row of round icons with short labels (Home, Work,
-	// named places, stations with live bikes and free docks), scrolling sideways when there are more. Tap goes there like
-	// a recent search; press and hold to rename, change the place or remove.
-	import { favouriteLabel, favouriteMenu, replacing, sortedFavourites, takeHintShowing, type Favourite } from '$lib/favourites';
+	// Gira+ Multi: the favourites at the top of the search list, in one row that scrolls sideways: Home and Work as
+	// discs with filled icons, saved stations as small cards with their live bikes and free docks, then named places
+	// with their own icon. Empty Home and Work slots and "Add" start a pick in the search. Tap goes there like a recent
+	// search; press and hold edits (or hides an empty slot).
+	import StationCard from '$lib/components/StationCard.svelte';
+	import FavouriteIcon, { SLOT_ICONS, SLOT_ICONS_FILLED } from '$lib/components/FavouriteIcon.svelte';
+	import { emptySlots, favouriteLabel, favouriteMenu, hideSlot, pick, sortedFavourites, type Favourite, type SlotKind } from '$lib/favourites';
 	import { hold } from '$lib/hold';
-	import { dismissSearchBar } from '$lib/components/SearchBar.svelte';
+	import { dismissSearchBar, focusSearchBar } from '$lib/components/SearchBar.svelte';
 	import { selectedStation, stations } from '$lib/map.svelte';
 	import { routeDestination } from '$lib/routing';
 	import { t } from '$lib/translations';
-	import { IconBike, IconBriefcase, IconHome, IconParking, IconStarFilled } from '@tabler/icons-svelte';
-	import { onMount } from 'svelte';
+	import IconPlus from '@tabler/icons-svelte/icons/plus';
+	import { scale } from 'svelte/transition';
 
 	let { recents }: { recents: boolean } = $props();
 
-	let hint = $state(false);
-	onMount(() => {
-		takeHintShowing().then(show => hint = show);
-	});
-
-	const shown = $derived($replacing ? [] : $sortedFavourites);
+	const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+	// Only a tile saved while the row is open scales in, not the whole row each time the search opens
+	const shownAtStart = new Set($sortedFavourites.map(f => f.id));
+	// the same tile look as StationCard
+	const tile = 'bg-background dark:bg-background-secondary shadow-[0_0_12px_var(--color-shadow)] dark:shadow-[inset_0_0_0_1px_var(--color-background-tertiary)]';
+	const press = 'transition-transform duration-100 motion-reduce:transition-none group-active:scale-95';
+	const label = 'mt-1.5 max-w-full flex items-center justify-center gap-[3px] text-xs font-semibold';
 
 	/**
 	 * Goes there like a recent search (a live station also opens its sheet), without adding it to the recent searches:
@@ -33,55 +37,81 @@
 		dismissSearchBar();
 	}
 
-	/** A saved station's live state: its bikes and docks, closed when it's out of service, or null while loading. */
-	function live(favourite: Favourite) {
-		const destination = favourite.destination;
-		if (destination.type !== 'station' || stations.value.length === 0) return null;
-		const station = stations.value.find(s => s.serialNumber === destination.stationSerial && s.assetStatus === 'active');
-		return station ? { bikes: station.bikes, docks: station.freeDocks } : 'closed' as const;
+	/** Starts a pick: the next place chosen in the search becomes Home or Work, or is offered for saving. */
+	function startPick(kind: SlotKind | 'add') {
+		pick.set({ kind });
+		focusSearchBar();
 	}
 
 	/** The tile's label. A station saved under its own name drops the number ("509 - Fonte Nova" → "Fonte Nova"). */
 	function short(favourite: Favourite) {
-		const label = $favouriteLabel(favourite);
-		if (favourite.destination.type !== 'station' || label !== favourite.destination.name) return label;
-		return label.split(/\s[-–]\s/).slice(1).join(' - ') || label;
+		const text = $favouriteLabel(favourite);
+		if (favourite.destination.type !== 'station' || text !== favourite.destination.name) return text;
+		return text.split(/\s[-–]\s/).slice(1).join(' - ') || text;
 	}
+
+	// The right edge fades only while more tiles follow
+	let row = $state<HTMLElement>();
+	let more = $state(false);
+	function measure() {
+		if (row) more = row.scrollLeft + row.clientWidth < row.scrollWidth - 1;
+	}
+	$effect(() => {
+		void $sortedFavourites.length;
+		void $emptySlots.length;
+		measure();
+	});
+	const fade = 'linear-gradient(to right, #000 calc(100% - 26px), transparent)';
+
+	// Keeps the search focused (and its keyboard up) when a slot is tapped, so the pick isn't cancelled
+	const keepFocus = (event: MouseEvent) => event.preventDefault();
 </script>
 
-{#if shown.length > 0}
-	<!-- the tiles are sized so a fifth one peeks in at the edge, showing the row scrolls -->
-	<div class="flex gap-1 overflow-x-auto px-2 pt-1 pb-2" style:scrollbar-width="none">
-		{#each shown as favourite (favourite.id)}
-			{@const state = live(favourite)}
-			<button class="flex flex-col items-center w-[58px] shrink-0 py-1" onclick={() => go(favourite)}
-				use:hold={() => favouriteMenu.set({ kind: 'edit', favourite })} aria-label={$favouriteLabel(favourite)}>
-				<span class="flex items-center justify-center w-11 h-11 rounded-full {state === 'closed' ? 'bg-label' : 'bg-primary'}">
-					{#if favourite.kind === 'home'}
-						<IconHome class="text-white" size="22" stroke="2.2" />
-					{:else if favourite.kind === 'work'}
-						<IconBriefcase class="text-white" size="22" stroke="2.2" />
-					{:else if favourite.destination.type === 'station'}
-						<IconBike class="text-white" size="22" stroke="2.2" />
-					{:else}
-						<IconStarFilled class="text-white" size="20" />
-					{/if}
-				</span>
-				<span class="mt-1 w-full text-center text-info font-semibold text-xs truncate">{short(favourite)}</span>
-				{#if state === 'closed'}
-					<span class="w-full text-center text-label text-[10px] leading-tight truncate">{$t('multi_fav_station_closed')}</span>
-				{:else if state}
-					<span class="flex items-center justify-center gap-[1px] text-label text-[10px] font-semibold leading-tight">
-						<IconBike size="11" stroke="2.4" />{state.bikes}
-						<IconParking class="ml-[3px]" size="11" stroke="2.4" />{state.docks}
+{#if !$pick}
+	<div bind:this={row} onscroll={measure} class="flex overflow-x-auto px-2.5 pt-1 pb-3 snap-x snap-proximity overscroll-x-contain"
+		style:scrollbar-width="none" style:mask-image={more ? fade : undefined} style:-webkit-mask-image={more ? fade : undefined}>
+		{#each $sortedFavourites as favourite (favourite.id)}
+			{@const isStation = favourite.destination.type === 'station'}
+			<button class="group shrink-0 flex flex-col items-center snap-start {isStation ? 'w-[100px]' : 'w-[60px]'}"
+				in:scale={{ duration: reducedMotion || shownAtStart.has(favourite.id) ? 0 : 220, start: 0.6 }} onclick={() => go(favourite)}
+				use:hold={{ onHold: () => favouriteMenu.set({ kind: 'edit', favourite }), press: false }} aria-label={$favouriteLabel(favourite)}>
+				{#if isStation}
+					<StationCard stationSerial={favourite.destination.type === 'station' ? favourite.destination.stationSerial : null} class={press} />
+				{:else}
+					<span class="flex items-center justify-center w-12 h-12 rounded-full text-primary {tile} {press}">
+						<FavouriteIcon {favourite} />
 					</span>
 				{/if}
+				<span class="{label} text-info">
+					{#if isStation && favourite.kind !== 'other'}
+						{@const Glyph = SLOT_ICONS_FILLED[favourite.kind]}
+						<Glyph class="text-primary shrink-0" size={12} />
+					{/if}
+					<span class="truncate">{short(favourite)}</span>
+				</span>
 			</button>
 		{/each}
+		{#each $emptySlots as kind (kind)}
+			{@const Icon = SLOT_ICONS[kind]}
+			<button class="group shrink-0 flex flex-col items-center w-[60px] snap-start" onmousedown={keepFocus} onclick={() => startPick(kind)}
+				use:hold={{ onHold: () => hideSlot(kind), press: false }} aria-label={$t(kind === 'home' ? 'multi_fav_home' : 'multi_fav_work')}>
+				<span class="relative flex items-center justify-center w-12 h-12 rounded-full text-label shadow-[inset_0_0_0_1.5px_var(--color-background-tertiary)] {press}">
+					<Icon size={22} stroke={2} />
+					<span class="absolute -right-[3px] -bottom-[3px] flex items-center justify-center w-[18px] h-[18px] rounded-full bg-primary text-white ring-2 ring-background-secondary dark:ring-background">
+						<IconPlus size={12} stroke={3} />
+					</span>
+				</span>
+				<span class="{label} text-label"><span class="truncate">{$t(kind === 'home' ? 'multi_fav_home' : 'multi_fav_work')}</span></span>
+			</button>
+		{/each}
+		<button class="group shrink-0 flex flex-col items-center w-[60px] snap-start" onmousedown={keepFocus} onclick={() => startPick('add')}>
+			<span class="flex items-center justify-center w-12 h-12 rounded-full text-label shadow-[inset_0_0_0_1.5px_var(--color-background-tertiary)] {press}">
+				<IconPlus size={22} stroke={2} />
+			</span>
+			<span class="{label} text-label"><span class="truncate">{$t('multi_fav_add')}</span></span>
+		</button>
 	</div>
 	{#if recents}
-		<div class="mx-4 mb-1 border-t border-background-tertiary"></div>
+		<div class="mx-4 mb-1.5 border-t border-background-tertiary"></div>
 	{/if}
-{:else if hint && !$replacing}
-	<span class="block px-4 pt-1 pb-2 text-xs text-label">{$t('multi_fav_hint')}</span>
 {/if}

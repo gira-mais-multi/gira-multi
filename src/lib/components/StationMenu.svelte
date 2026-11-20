@@ -13,7 +13,7 @@
 	import { safeInsets } from '$lib/ui.svelte';
 	import { distanceBetweenCoords, formatDistance } from '$lib/utils';
 	import IncomingBike from '$lib/components/IncomingBike.svelte';
-	import StationStar from '$lib/components/StationStar.svelte'; // Gira+ Multi
+	import FavouriteCaption from '$lib/components/FavouriteCaption.svelte'; import { stationHold } from '$lib/station-hold'; // Gira+ Multi
 	import { onMount, tick } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { Tween } from 'svelte/motion';
@@ -287,13 +287,12 @@
 		</div>
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="flex p-9 pt-0 pb-2 gap-4" ontouchstart={onTouchStart} ontouchend={onTouchEnd} ontouchmove={onTouchMove}>
-			<div class="flex flex-col grow">
+			<div class="flex flex-col grow" use:stationHold={station}><FavouriteCaption {station} /><!-- Gira+ Multi: hold to save -->
 				<div class="flex items-center gap-2">
 					<span class="font-bold text-sm text-info">{$t('station_label')} {code}</span>
 					{#if distance}
 						<span transition:fade={{ duration: 150 }} class="font-semibold bg-background-secondary text-xs text-info px-1 py-[1px] rounded">{formatDistance(distance)}</span>
 					{/if}
-					<StationStar {station} /><!-- Gira+ Multi -->
 				</div>
 				<span class="text-xs font-medium text-label leading-none mt-[2px]">{name}</span>
 			</div>

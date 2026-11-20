@@ -31,7 +31,7 @@
 	import Dialog from '$lib/components/Dialog.svelte';
 	import { startArrivalSharing } from '$lib/arrival-sharing';
 	import AccountPickerHost from '$lib/components/AccountPickerHost.svelte';
-	import FavouritesHost from '$lib/components/FavouritesHost.svelte';
+	import FavouritesHost, { closeFavouriteSheet } from '$lib/components/FavouritesHost.svelte';
 	import TripAccountButton from '$lib/components/TripAccountButton.svelte';
 	import AccountSwipe from '$lib/components/AccountSwipe.svelte';
 	import AccountMenu from '$lib/components/AccountMenu.svelte';
@@ -77,7 +77,7 @@
 		});
 
 		App.addListener('backButton', () => {
-			if (!profileOpen && !closeAccountMenu()) {
+			if (!profileOpen && !closeAccountMenu() && !closeFavouriteSheet()) {
 				if (dismissSearchBar()) {
 				// just unfocus the search bar
 				} else if ($selectedStation != null) {
