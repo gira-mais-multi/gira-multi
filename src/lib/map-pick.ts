@@ -2,7 +2,7 @@
 // trip), so a stray tap never drops a pin. While choosing a favourite's place, holding a spot picks it, tapping a
 // station picks the station, and a tap on an empty spot only nudges the reminder; none of them starts a route.
 // Called from one-line hooks in Gira+'s Map.svelte.
-import { favouriteMenu, favouriteNotice, pickBusy, pickNudge, takeMapSpot, takePick } from './favourites';
+import { favouriteNotice, favouriteSheetOpen, pickBusy, pickNudge, takeMapSpot, takePick } from './favourites';
 import { swallowNextClick } from './hold';
 import { selectedStation, stations } from './map.svelte';
 import { currentTrip } from './trip';
@@ -91,9 +91,9 @@ function hidePinAfter(ms: number) {
 }
 
 /** The sheet opening over the pin keeps it (and slides the map up if the sheet would cover it); closing it lets it go. */
-favouriteMenu.subscribe(menu => {
+favouriteSheetOpen.subscribe(open => {
 	if (!pinMap) return;
-	if (!menu) return hidePinAfter(PIN_AFTER_SAVE_MS);
+	if (!open) return hidePinAfter(PIN_AFTER_SAVE_MS);
 	clearTimeout(pinTimer);
 	const y = pinMap.project(pinAt).y;
 	const top = pinMap.getContainer().clientHeight * 0.3;

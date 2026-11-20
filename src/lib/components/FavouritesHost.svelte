@@ -17,7 +17,7 @@
 	import { currentRoute } from '$lib/routing';
 	import { currentTrip } from '$lib/trip';
 	import { dismissSearchBar } from '$lib/components/SearchBar.svelte';
-	import { favouriteLabel, favouriteMenu, favouriteNotice, pick, type FavouriteMenuRequest } from '$lib/favourites';
+	import { favouriteLabel, favouriteMenu, favouriteNotice, favouriteSheetOpen, pick, type FavouriteMenuRequest } from '$lib/favourites';
 	import { t } from '$lib/translations';
 	import IconCircleCheck from '@tabler/icons-svelte/icons/circle-check';
 	import { fly } from 'svelte/transition';
@@ -31,6 +31,7 @@
 	const below = $derived(searchBarBottom - ($currentRoute != null && $currentTrip == null ? 0 : ROUTE_STRIP_PX) + 8);
 
 	let request = $state<FavouriteMenuRequest | null>(null);
+	$effect(() => favouriteSheetOpen.set(request !== null));
 	const dismiss = () => request = null;
 	close = () => {
 		const open = request !== null;

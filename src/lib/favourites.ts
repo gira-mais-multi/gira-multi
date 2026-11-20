@@ -200,6 +200,8 @@ export type FavouriteMenuRequest =
 	{ kind: 'save', destination: SearchHistoryEntry, pick?: Pick } |
 	{ kind: 'edit', favourite: Favourite };
 export const favouriteMenu = writable<FavouriteMenuRequest | null>(null);
+/** Whether that sheet is open (FavouritesHost takes each request at once, so `favouriteMenu` itself goes back to null). */
+export const favouriteSheetOpen = writable(false);
 
 /** Holding a place or station: the edit sheet when it's already saved, else the save sheet. */
 export function holdToSave(destination: SearchHistoryEntry) {

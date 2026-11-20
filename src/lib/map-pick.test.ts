@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { favourites, pick, resetFavouritesForTest } from '$lib/favourites';
+import { favourites, favouriteSheetOpen, pick, resetFavouritesForTest } from '$lib/favourites';
 import { stations, type StationInfo } from '$lib/map.svelte';
-import { pickHold, pickStation, pickTap } from '$lib/map-pick';
+import { PIN_AFTER_SAVE_MS, pickHold, pickStation, pickTap } from '$lib/map-pick';
 import { currentTrip, type ActiveTrip } from '$lib/trip';
 import type maplibregl from 'maplibre-gl';
 
@@ -74,6 +74,41 @@ describe('choosing a favourite\'s place on the map', () => {
 			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(false);
 		} finally {
 			currentTrip.set(null);
+			vi.useRealTimers();
+		}
+	});
+
+	it('the held spot keeps its pin while the sheet for naming it is open, and loses it soon after it closes', () => {
+		vi.useFakeTimers({ now: Date.now() + 60_000 });
+		try {
+			let pins = 0; // features on the pin layer
+			const source = { setData: (data: GeoJSON.FeatureCollection) => pins = data.features.length };
+			let added = false;
+			const map = {
+				getCanvasContainer: () => ({ getBoundingClientRect: () => ({ left: 0, top: 0 }) }),
+				queryRenderedFeatures: () => [],
+				unproject: () => ({ lat: 38.71, lng: -9.14 }),
+				getSource: () => added ? source : undefined,
+				addSource: (_id: string, spec: { data: GeoJSON.FeatureCollection }) => { added = true; source.setData(spec.data); },
+				addLayer: () => {},
+				project: () => ({ y: 100 }),
+				getContainer: () => ({ clientHeight: 800 }),
+				panBy: () => {},
+			} as unknown as maplibregl.Map;
+			pick.set({ kind: 'add' });
+			expect(pickHold(map, { clientX: 10, clientY: 10 } as PointerEvent, ['points'], () => {})).toBe(true);
+			expect(pins).toBe(1);
+
+			favouriteSheetOpen.set(true);
+			vi.advanceTimersByTime(20_000); // naming takes a while
+			expect(pins).toBe(1);
+
+			favouriteSheetOpen.set(false);
+			vi.advanceTimersByTime(PIN_AFTER_SAVE_MS);
+			expect(pins).toBe(0);
+		} finally {
+			favouriteSheetOpen.set(false);
+			pick.set(null);
 			vi.useRealTimers();
 		}
 	});

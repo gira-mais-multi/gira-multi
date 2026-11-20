@@ -120,7 +120,7 @@ export function profileHeader(node: HTMLElement) {
 		email = next;
 	});
 
-	const held = hold(node, toggleMain);
+	const held = hold(node, { onHold: toggleMain, press: false }); // no press colour: the header has no rounded box to fill
 	// Seven taps make the bolacha Maria row appear ($lib/bolacha)
 	node.addEventListener('click', bakerTap);
 
