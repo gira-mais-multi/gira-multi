@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Gira+ Multi: while choosing a favourite's place, a small pill under the search bar says what's being chosen and
-	// how ("Mantenha premido no mapa"), with Cancel. It stays while the search is closed, so the place can be held on
+	// how ("Mantenha premido no mapa"), with an X to cancel. It stays while the search is closed, so the place can be held on
 	// the map; a tap on the map (which does nothing while choosing) makes the instruction flash.
 	import { SLOT_ICONS } from '$lib/components/FavouriteIcon.svelte';
 	import { cancelPick, favouriteLabel, pick, pickNudge } from '$lib/favourites';
@@ -8,6 +8,7 @@
 	import { keyboard } from '$lib/ui.svelte';
 	import IconPlus from '@tabler/icons-svelte/icons/plus';
 	import IconReplace from '@tabler/icons-svelte/icons/replace';
+	import IconX from '@tabler/icons-svelte/icons/x';
 	import { fly } from 'svelte/transition';
 
 	let { top }: { top: number } = $props();
@@ -42,7 +43,9 @@
 			<div class="text-sm font-semibold text-info truncate">{title}</div>
 			<div class="text-xs font-medium truncate transition-colors duration-200 {flash ? 'text-primary font-bold' : 'text-label'}" class:animate-nudge={flash}>{$t('multi_fav_pick_hold')}</div>
 		</div>
-		<button class="shrink-0 min-h-11 px-3 text-sm font-bold text-label" onclick={cancelPick}>{$t('cancel_button')}</button>
+		<button class="shrink-0 flex items-center justify-center w-11 h-11 text-label" onclick={cancelPick} aria-label={$t('cancel_button')}>
+			<IconX size={20} stroke={2} />
+		</button>
 	</div>
 {/if}
 
