@@ -7,10 +7,9 @@
 	import StationCard from '$lib/components/StationCard.svelte';
 	import { focusSearchBar } from '$lib/components/SearchBar.svelte';
 	import {
-		editFavourite, favouriteLabel, favourites, moveFavourite, pick, PLACE_ICONS, placeIcon, removeFavourite, saveEffects,
+		confirmSaved, editFavourite, favouriteLabel, favourites, moveFavourite, pick, PLACE_ICONS, placeIcon, removeFavourite, saveEffects,
 		saveFavourite, twoTap, type Favourite, type FavouriteKind, type FavouriteMenuRequest, type PlaceIcon,
 	} from '$lib/favourites';
-	import { buzz } from '$lib/hold';
 	import { t } from '$lib/translations';
 	import { keyboard, safeInsets } from '$lib/ui.svelte';
 	import IconMapPin from '@tabler/icons-svelte/icons/map-pin';
@@ -50,11 +49,18 @@
 	$effect(() => {
 		const view = window.visualViewport;
 		if (!view) return;
-		const update = () => lift = Math.max(0, Math.round(window.innerHeight - view.offsetTop - view.height));
-		update();
+		// Measured once the keyboard and that scroll have settled; reading in between made the sheet jump up and back
+		let settle: ReturnType<typeof setTimeout> | undefined;
+		const measure = () => lift = Math.max(0, Math.round(window.innerHeight - view.offsetTop - view.height));
+		const update = () => {
+			clearTimeout(settle);
+			settle = setTimeout(measure, 120);
+		};
+		measure();
 		view.addEventListener('resize', update);
 		view.addEventListener('scroll', update);
 		return () => {
+			clearTimeout(settle);
 			view.removeEventListener('resize', update);
 			view.removeEventListener('scroll', update);
 		};
@@ -74,13 +80,13 @@
 
 	async function save(kind: 'home' | 'work') {
 		await saveFavourite(destination, kind);
-		buzz();
+		confirmSaved({ kind });
 		dismiss();
 	}
 
 	async function confirmMove(favourite: Favourite) {
 		await moveFavourite(favourite.id, destination);
-		buzz();
+		confirmSaved({ moved: favourite });
 		dismiss();
 	}
 
@@ -96,8 +102,10 @@
 	async function saveName() {
 		if (!name.trim()) return;
 		if (editing) await editFavourite(editing.id, name, isStation ? undefined : icon);
-		else await saveFavourite(destination, 'other', name, isStation ? undefined : icon);
-		buzz();
+		else {
+			await saveFavourite(destination, 'other', name, isStation ? undefined : icon);
+			confirmSaved({ kind: 'other', name: name.trim() });
+		}
 		input?.blur();
 		dismiss();
 	}

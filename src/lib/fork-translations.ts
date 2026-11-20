@@ -325,4 +325,12 @@ export const forkTranslations = {
 		en: 'Saved',
 		pt: 'Guardada',
 	},
+	multi_fav_saved_as: {
+		en: 'Saved as {{name}}',
+		pt: 'Guardado como {{name}}',
+	},
+	multi_fav_moved: {
+		en: '{{name}}: new place saved',
+		pt: '{{name}}: novo local guardado',
+	},
 } as const;

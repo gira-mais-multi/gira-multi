@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import {
-	choosePicked, editFavourite, emptySlots, favouriteMenu, favourites, hiddenSlots, hideSlot, holdToSave, loadFavourites,
+	choosePicked, editFavourite, emptySlots, favouriteMenu, favouriteNotice, favourites, hiddenSlots, hideSlot, holdToSave, loadFavourites,
 	moveFavourite, pick, placeIcon, removeFavourite, resetFavouritesForTest, saveEffects, saveFavourite, sortedFavourites,
 	twoTap, withoutFavourites,
 } from '$lib/favourites';
@@ -111,6 +111,16 @@ describe('favourites', () => {
 			await pickPlace(place('Outro sítio', 38.77));
 			await restart();
 			expect(summary()).toEqual([['home', '', 'Rua de Casa']]);
+		});
+
+		it('a pin dropped on the map waits for its address, so the place is saved with a name', async () => {
+			pick.set({ kind: 'work' });
+			// Gira+ sets a dropped pin first without a name, then again once the address is looked up
+			await pickPlace({ type: 'location', lat: 38.74, lng: -9.15 } as SearchHistoryEntry);
+			expect(get(favourites)).toEqual([]);
+			await pickPlace(place('Avenida da República, 50', 38.74));
+			expect(summary()).toEqual([['work', '', 'Avenida da República, 50']]);
+			await vi.waitFor(() => expect(get(favouriteNotice)).toMatchObject({ kind: 'work' }));
 		});
 
 		it('never replaces another favourite silently: a saved place opens the save sheet with the warning', async () => {

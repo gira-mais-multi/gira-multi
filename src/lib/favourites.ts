@@ -92,6 +92,8 @@ export function resetFavouritesForTest() {
 	hiddenSlots.set([]);
 	pick.set(null);
 	favouriteMenu.set(null);
+	if (waiting) clearTimeout(waiting.timer);
+	waiting = null;
 }
 
 async function change(next: (list: Favourite[]) => Favourite[]) {
@@ -264,14 +266,58 @@ export async function choosePicked(current: Pick, destination: SearchHistoryEntr
 	return true;
 }
 
+/** What a short confirmation after a save says ("Saved as Home", "Work: new place saved"); shown by FavouritesHost. */
+export type SavedNotice = { kind: FavouriteKind, name?: string } | { moved: Favourite };
+export const favouriteNotice = writable<(SavedNotice & { id: number }) | null>(null);
+
+/** Confirms a save: the notice and a short buzz. */
+export function confirmSaved(notice: SavedNotice) {
+	favouriteNotice.set({ ...notice, id: Date.now() });
+	buzz();
+}
+
+/** How long a pin dropped on the map may wait for its address before it is saved with its coordinates. */
+const ADDRESS_WAIT_MS = 6000;
+// A pin dropped on the map arrives first without a name; Gira+ sets it again once the address is looked up
+let waiting: { pick: Pick, lat: number, lng: number, timer: ReturnType<typeof setTimeout> } | null = null;
+
+function finishPick(current: Pick, destination: SearchHistoryEntry) {
+	void choosePicked(current, destination).then(saved => {
+		if (saved) confirmSaved(current.kind === 'move' ? { moved: current.favourite } : { kind: current.kind as SlotKind });
+	});
+}
+
+function waitForAddress(current: Pick, lat: number, lng: number) {
+	if (waiting) clearTimeout(waiting.timer);
+	waiting = {
+		pick: current,
+		lat,
+		lng,
+		timer: setTimeout(() => {
+			waiting = null;
+			finishPick(current, { type: 'location', lat, lng, name: `${lat.toFixed(5)}, ${lng.toFixed(5)}` });
+		}, ADDRESS_WAIT_MS),
+	};
+}
+
 routeDestination.subscribe(destination => {
+	if (waiting && destination) {
+		const current = waiting.pick;
+		if (destination.name) {
+			// The address arrived, or the rider picked something else meanwhile
+			clearTimeout(waiting.timer);
+			waiting = null;
+			finishPick(current, { ...destination, name: destination.name });
+		} else {
+			waitForAddress(current, destination.lat, destination.lng);
+		}
+		return;
+	}
 	const current = get(pick);
 	if (!current || !destination) return;
 	pick.set(null);
-	const entry: SearchHistoryEntry = { ...destination, name: destination.name ?? `${destination.lat.toFixed(5)}, ${destination.lng.toFixed(5)}` };
-	void choosePicked(current, entry).then(saved => {
-		if (saved) buzz();
-	});
+	if (destination.name) finishPick(current, { ...destination, name: destination.name });
+	else waitForAddress(current, destination.lat, destination.lng);
 });
 
 /** How long "Remove" stays armed for its second tap. */
