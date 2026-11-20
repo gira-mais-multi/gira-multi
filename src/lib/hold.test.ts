@@ -36,6 +36,23 @@ describe('hold', () => {
 		expect(tapped).not.toHaveBeenCalled();
 	});
 
+	it('swallows the release click wherever it lands, so it cannot press what the hold opened', () => {
+		const opened = document.createElement('button');
+		const pressed = vi.fn();
+		opened.addEventListener('click', pressed);
+		held.mockImplementation(() => document.body.append(opened));
+		press();
+		vi.advanceTimersByTime(500);
+		node.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+		opened.click();
+		expect(pressed).not.toHaveBeenCalled();
+		// a real tap afterwards still works
+		vi.advanceTimersByTime(600);
+		opened.click();
+		expect(pressed).toHaveBeenCalledOnce();
+		opened.remove();
+	});
+
 	it('leaves a short tap alone', () => {
 		press();
 		vi.advanceTimersByTime(200);

@@ -1,11 +1,14 @@
-// Gira+ Multi: a press-and-hold action. The click that ends a hold is swallowed, so holding an element that also
-// reacts to taps (an account row switches on tap) doesn't do both. While the finger rests on it, the element gets
+// Gira+ Multi: a press-and-hold action. The click that ends a hold is swallowed wherever it lands, so holding an
+// element that also reacts to taps (an account row switches on tap) doesn't do both, and lifting the finger doesn't
+// press what the hold just opened under it (a sheet's "Home" row). While the finger rests on it, the element gets
 // `data-holding` and, unless `press: false`, Gira+'s press colour; the phone gives a short buzz when the hold fires.
 const HOLD_MS = 500;
 /** The press feedback starts this long after the finger lands, so a quick tap or a scroll doesn't flash it. */
 const FEEDBACK_MS = 120;
 /** A finger that moves this far is scrolling, not holding. */
 const MOVE_TOLERANCE_PX = 10;
+/** After the finger lifts, how long its click can still arrive. */
+const CLICK_WINDOW_MS = 500;
 /** The buzz, in ms. Tweak here if it isn't felt (15-20). */
 const BUZZ_MS = 10;
 
@@ -18,6 +21,30 @@ export function buzz() {
 	}
 }
 
+/** Swallows the click that the finger ending a hold sends, wherever it lands. */
+function swallowReleaseClick() {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const swallow = (event: MouseEvent) => {
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		stop();
+	};
+	const released = () => {
+		clearTimeout(timer);
+		timer = setTimeout(stop, CLICK_WINDOW_MS);
+	};
+	const stop = () => {
+		clearTimeout(timer);
+		window.removeEventListener('click', swallow, true);
+		window.removeEventListener('pointerup', released, true);
+		window.removeEventListener('touchend', released, true);
+	};
+	window.addEventListener('click', swallow, true);
+	window.addEventListener('pointerup', released, true);
+	window.addEventListener('touchend', released, true);
+	timer = setTimeout(stop, 10_000); // in case the release is never seen
+}
+
 export type HoldOptions = { onHold: () => void, press?: boolean };
 
 export function hold(node: HTMLElement, param: (() => void) | HoldOptions) {
@@ -25,7 +52,6 @@ export function hold(node: HTMLElement, param: (() => void) | HoldOptions) {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	let feedback: ReturnType<typeof setTimeout> | undefined;
 	let start: { x: number, y: number } | null = null;
-	let held = false;
 
 	const showFeedback = (on: boolean) => {
 		if (on) node.dataset.holding = '';
@@ -42,24 +68,17 @@ export function hold(node: HTMLElement, param: (() => void) | HoldOptions) {
 	};
 	const down = (event: PointerEvent) => {
 		cancel();
-		held = false;
 		start = { x: event.clientX, y: event.clientY };
 		feedback = setTimeout(() => showFeedback(true), FEEDBACK_MS);
 		timer = setTimeout(() => {
 			cancel();
-			held = true;
+			swallowReleaseClick();
 			buzz();
 			options.onHold();
 		}, HOLD_MS);
 	};
 	const move = (event: PointerEvent) => {
 		if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > MOVE_TOLERANCE_PX) cancel();
-	};
-	const click = (event: MouseEvent) => {
-		if (!held) return;
-		held = false;
-		event.preventDefault();
-		event.stopImmediatePropagation();
 	};
 	// Android's own long-press menu (text selection) would otherwise open as well
 	const contextMenu = (event: Event) => event.preventDefault();
@@ -70,7 +89,6 @@ export function hold(node: HTMLElement, param: (() => void) | HoldOptions) {
 		['pointerup', cancel],
 		['pointercancel', cancel],
 		['pointerleave', cancel],
-		['click', click as EventListener, true],
 		['contextmenu', contextMenu],
 	];
 	for (const [type, listener, capture] of listeners) node.addEventListener(type, listener, capture);

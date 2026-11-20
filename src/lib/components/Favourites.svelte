@@ -87,7 +87,7 @@
 						{@const Glyph = SLOT_ICONS_FILLED[favourite.kind]}
 						<Glyph class="text-primary shrink-0" size={12} />
 					{/if}
-					<span class="truncate">{short(favourite)}</span>
+					<span class="min-w-0 truncate">{short(favourite)}</span>
 				</span>
 			</button>
 		{/each}
