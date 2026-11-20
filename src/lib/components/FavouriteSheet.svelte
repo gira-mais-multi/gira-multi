@@ -44,6 +44,22 @@
 	const remover = twoTap(on => armed = on);
 	onDestroy(() => remover.cancel());
 
+	// How far the keyboard covers the page's bottom. Android may already scroll the page up to keep the name box
+	// visible (then nothing is left to lift), so this follows the visible area rather than the keyboard's height.
+	let lift = $state(0);
+	$effect(() => {
+		const view = window.visualViewport;
+		if (!view) return;
+		const update = () => lift = Math.max(0, Math.round(window.innerHeight - view.offsetTop - view.height));
+		update();
+		view.addEventListener('resize', update);
+		view.addEventListener('scroll', update);
+		return () => {
+			view.removeEventListener('resize', update);
+			view.removeEventListener('scroll', update);
+		};
+	});
+
 	const disc = 'flex items-center justify-center shrink-0 rounded-full bg-background-secondary dark:bg-background-tertiary text-primary';
 	const caption = 'flex items-center gap-1 text-[10px] leading-none font-semibold uppercase tracking-wider text-label';
 
@@ -103,8 +119,8 @@
 <div class="fixed inset-0 z-[60]">
 	<button transition:fade={{ duration: 200 }} class="absolute inset-0 bg-black/40 cursor-default" aria-label={$t('cancel_button')} onclick={dismiss}></button>
 	<div transition:fly={{ y: 200, duration: 200 }}
-		class="absolute inset-x-0 px-6 bg-background transition-[bottom] duration-200 {keyboard.height > 0 ? 'rounded-4xl' : 'rounded-t-4xl'}"
-		style:bottom="{keyboard.height}px" style:padding-bottom="{keyboard.height > 0 ? 20 : Math.max(20, $safeInsets.bottom)}px"
+		class="absolute inset-x-0 px-6 bg-background transition-[bottom] duration-200 {keyboard.visible ? 'rounded-4xl' : 'rounded-t-4xl'}"
+		style:bottom="{lift}px" style:padding-bottom="{keyboard.visible ? 20 : Math.max(20, $safeInsets.bottom)}px"
 		style:box-shadow="0px 0px 20px 0px var(--color-shadow)">
 		<div class="mx-auto mt-2 mb-3.5 w-16 h-[6px] rounded-full bg-background-tertiary"></div>
 
