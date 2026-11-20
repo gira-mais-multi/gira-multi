@@ -317,11 +317,15 @@ export function takeMapSpot(lat: number, lng: number): boolean {
 	pick.set(null);
 	lastPickAt = Date.now();
 	buzz();
-	void reverseGeocode({ lat, lng })
+	// The buzz came at once; the address gets a few seconds, then the coordinates name the place
+	void Promise.race([reverseGeocode({ lat, lng }), new Promise<null>(resolve => setTimeout(() => resolve(null), ADDRESS_WAIT_MS))])
 		.catch(() => null)
 		.then(name => finishPick(current, { type: 'location', lat, lng, name: name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}` }));
 	return true;
 }
+
+/** How long a held spot waits for its address before the coordinates name it. */
+const ADDRESS_WAIT_MS = 3000;
 
 /** Ends choosing (the reminder's X, the back button). True when it was on. */
 export function cancelPick() {

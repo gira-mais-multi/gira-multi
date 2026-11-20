@@ -6,6 +6,7 @@ import {
 	moveFavourite, pick, placeIcon, removeFavourite, resetFavouritesForTest, saveEffects, saveFavourite, sortedFavourites,
 	takeMapSpot, takePick, twoTap, withoutFavourites,
 } from '$lib/favourites';
+import { routeDestination } from '$lib/routing';
 import type { SearchHistoryEntry } from '$lib/search-history';
 
 vi.mock('$lib/geocoding', () => ({ reverseGeocode: vi.fn(async () => 'Avenida da República, 50') }));
@@ -126,6 +127,15 @@ describe('favourites', () => {
 			pick.set({ kind: 'add' });
 			takeMapSpot(38.75, -9.16);
 			await vi.waitFor(() => expect(get(favouriteMenu)).toMatchObject({ kind: 'save', destination: { name: '38.75000, -9.16000' } }));
+		});
+
+		it('a destination set elsewhere while choosing (a late map address, a route) never becomes the favourite', async () => {
+			pick.set({ kind: 'home' });
+			routeDestination.set({ type: 'location', lat: 38.73, lng: -9.14, name: 'Rua tocada antes' });
+			await new Promise(resolve => setTimeout(resolve));
+			expect(get(favourites)).toEqual([]);
+			expect(get(pick)).toEqual({ kind: 'home' });
+			routeDestination.set(null);
 		});
 
 		it('ends on cancel, and outside choosing nothing is taken', async () => {

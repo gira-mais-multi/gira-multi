@@ -302,12 +302,12 @@ export const forkTranslations = {
 		pt: 'A escolher {{name}}',
 	},
 	multi_fav_picking_add: {
-		en: 'Choosing a place to save',
-		pt: 'A escolher um local a guardar',
+		en: 'Choosing a place',
+		pt: 'A escolher um local',
 	},
 	multi_fav_pick_add_placeholder: {
-		en: 'Search for a place to save',
-		pt: 'Procurar um local a guardar',
+		en: 'Search for a place',
+		pt: 'Pesquisar um local',
 	},
 	multi_fav_remove_confirm: {
 		en: 'Tap again to remove',
@@ -332,5 +332,9 @@ export const forkTranslations = {
 	multi_fav_moved: {
 		en: '{{name}}: new place saved',
 		pt: '{{name}}: novo local guardado',
+	},
+	multi_fav_pick_hold: {
+		en: 'Hold a spot on the map',
+		pt: 'Mantenha premido no mapa',
 	},
 } as const;

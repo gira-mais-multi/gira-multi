@@ -159,7 +159,7 @@
 	{/if}
 	<Dialog />
 	<AccountPickerHost />
-	<FavouritesHost />
+	<FavouritesHost {searchBarBottom} />
 	<AccountMenu />
 </div>
 
