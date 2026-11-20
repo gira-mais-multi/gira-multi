@@ -27,6 +27,7 @@
 	import maplibregl, { type ExpressionSpecification } from 'maplibre-gl';
 	import { onMount, tick, untrack } from 'svelte';
 	import { get } from 'svelte/store';
+	import { pickHold, pickStation, pickTap } from '$lib/map-pick'; // Gira+ Multi
 	import { fade } from 'svelte/transition';
 
 	interface Props {
@@ -317,6 +318,7 @@
 	let press: { id: number, x: number, y: number, time: number }|null = null;
 
 	function tripHoldPinDrop(e: PointerEvent) {
+		if (mapLoaded && pickHold(map, e, STATION_LAYERS)) return; // Gira+ Multi: choosing a favourite's place
 		if (!mapLoaded || get(currentTrip) === null) return;
 		if (get(selectedStation) != null) return; // the tap closes the menu instead
 		const rect = map.getCanvasContainer().getBoundingClientRect();
@@ -333,6 +335,7 @@
 			following.set(false);
 			const feature = e.features[0] as GeoJSON.Feature<GeoJSON.Point>;
 			const props = feature.properties as { serialNumber: string, name: string, bikes: number };
+			if (pickStation(props.serialNumber)) return; // Gira+ Multi: choosing a favourite's place
 			selectedStation.set(props.serialNumber);
 			// Tapping a station that's already part of the route (e.g. to unlock a
 			// bike at the pickup station) only opens its menu — it must not replace
@@ -389,6 +392,7 @@
 			following.set(false);
 		});
 		map.on('click', e => {
+			if (pickTap()) return; // Gira+ Multi: choosing a favourite's place
 			const features = map.queryRenderedFeatures(e.point, { layers: STATION_LAYERS });
 			if (features.length > 0) return;
 			if (get(selectedStation) != null) {

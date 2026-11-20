@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { reverseGeocode } from '$lib/geocoding';
 import { get } from 'svelte/store';
 import {
-	choosePicked, editFavourite, emptySlots, favouriteMenu, favouriteNotice, favourites, hiddenSlots, hideSlot, holdToSave, loadFavourites,
+	cancelPick, choosePicked, editFavourite, emptySlots, favouriteMenu, favouriteNotice, favourites, hiddenSlots, hideSlot, holdToSave, loadFavourites,
 	moveFavourite, pick, placeIcon, removeFavourite, resetFavouritesForTest, saveEffects, saveFavourite, sortedFavourites,
-	twoTap, withoutFavourites,
+	takeMapSpot, takePick, twoTap, withoutFavourites,
 } from '$lib/favourites';
-import { routeDestination } from '$lib/routing';
 import type { SearchHistoryEntry } from '$lib/search-history';
+
+vi.mock('$lib/geocoding', () => ({ reverseGeocode: vi.fn(async () => 'Avenida da República, 50') }));
 
 const place = (name: string, lat = 38.7): SearchHistoryEntry => ({ type: 'location', name, lat, lng: -9.14 });
 const sodre = { type: 'station', name: '481 - Cais do Sodré', lat: 38.7063, lng: -9.1449, stationSerial: 'sodre' } as const;
@@ -22,7 +24,6 @@ const summary = () => get(favourites).map(f => [f.kind, f.label, f.destination.n
 describe('favourites', () => {
 	beforeEach(() => {
 		localStorage.clear();
-		routeDestination.set(null);
 		resetFavouritesForTest();
 	});
 
@@ -99,28 +100,41 @@ describe('favourites', () => {
 		expect(summary()).toEqual([['home', '', 'Rua do Ginásio']]);
 	});
 
-	describe('choosing Home, Work or a new place in the search', () => {
+	describe('choosing Home, Work or a new place', () => {
 		const pickPlace = async (destination: SearchHistoryEntry) => {
-			routeDestination.set(destination);
+			const taken = takePick(destination);
 			await new Promise(resolve => setTimeout(resolve));
+			return taken;
 		};
 
-		it('saves a new place as Home straight away, only for the one pick', async () => {
+		it('saves a new place as Home straight away, only for the one pick, and confirms it', async () => {
 			pick.set({ kind: 'home' });
-			await pickPlace(place('Rua de Casa', 38.71));
-			await pickPlace(place('Outro sítio', 38.77));
+			expect(await pickPlace(place('Rua de Casa', 38.71))).toBe(true);
+			// the next search result goes back to being a normal destination
+			expect(await pickPlace(place('Outro sítio', 38.77))).toBe(false);
+			await vi.waitFor(() => expect(get(favouriteNotice)).toMatchObject({ kind: 'home' }));
 			await restart();
 			expect(summary()).toEqual([['home', '', 'Rua de Casa']]);
 		});
 
-		it('a pin dropped on the map waits for its address, so the place is saved with a name', async () => {
+		it('a spot held on the map is saved under its address, or its coordinates when none comes', async () => {
 			pick.set({ kind: 'work' });
-			// Gira+ sets a dropped pin first without a name, then again once the address is looked up
-			await pickPlace({ type: 'location', lat: 38.74, lng: -9.15 } as SearchHistoryEntry);
+			expect(takeMapSpot(38.74, -9.15)).toBe(true);
+			await vi.waitFor(() => expect(summary()).toEqual([['work', '', 'Avenida da República, 50']]));
+
+			vi.mocked(reverseGeocode).mockResolvedValueOnce(null);
+			pick.set({ kind: 'add' });
+			takeMapSpot(38.75, -9.16);
+			await vi.waitFor(() => expect(get(favouriteMenu)).toMatchObject({ kind: 'save', destination: { name: '38.75000, -9.16000' } }));
+		});
+
+		it('ends on cancel, and outside choosing nothing is taken', async () => {
+			pick.set({ kind: 'home' });
+			expect(cancelPick()).toBe(true);
+			expect(cancelPick()).toBe(false);
+			expect(takePick(place('Rua de Casa'))).toBe(false);
+			expect(takeMapSpot(38.74, -9.15)).toBe(false);
 			expect(get(favourites)).toEqual([]);
-			await pickPlace(place('Avenida da República, 50', 38.74));
-			expect(summary()).toEqual([['work', '', 'Avenida da República, 50']]);
-			await vi.waitFor(() => expect(get(favouriteNotice)).toMatchObject({ kind: 'work' }));
 		});
 
 		it('never replaces another favourite silently: a saved place opens the save sheet with the warning', async () => {

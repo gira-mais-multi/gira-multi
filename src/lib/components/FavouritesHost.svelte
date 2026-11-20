@@ -1,23 +1,24 @@
 <script lang="ts" module>
+	import { cancelPick } from '$lib/favourites';
 	let close: (() => boolean) | null = null;
 
-	/** Closes the favourites sheet; true when it was open, so a back press stops there. */
+	/** Closes the favourites sheet, or else ends choosing a place; true when either was on, so a back press stops there. */
 	export function closeFavouriteSheet(): boolean {
-		return close?.() ?? false;
+		return (close?.() ?? false) || cancelPick();
 	}
 </script>
 
 <script lang="ts">
 	// Gira+ Multi: opens the favourites sheet when a station title, search result, recent search or favourite is held
-	// (or a pick needs confirming), and cancels a pending pick when the search closes without one.
+	// (or a pick needs confirming), shows the "saved" notice, and ends choosing a place after a long time in the background.
 	import FavouriteSheet from '$lib/components/FavouriteSheet.svelte';
 	import { dismissSearchBar } from '$lib/components/SearchBar.svelte';
-	import { favouriteLabel, favouriteMenu, favouriteNotice, pick, type FavouriteMenuRequest } from '$lib/favourites';
+	import { favouriteLabel, favouriteMenu, favouriteNotice, type FavouriteMenuRequest } from '$lib/favourites';
 	import { t } from '$lib/translations';
 	import { safeInsets } from '$lib/ui.svelte';
 	import IconCircleCheck from '@tabler/icons-svelte/icons/circle-check';
 	import { fly } from 'svelte/transition';
-	import { Keyboard } from '@capacitor/keyboard';
+	import { App } from '@capacitor/app';
 	import { onDestroy, onMount } from 'svelte';
 
 	let request = $state<FavouriteMenuRequest | null>(null);
@@ -50,19 +51,19 @@
 		return () => clearTimeout(timer);
 	});
 
-	// A pick sets the destination before the keyboard closes; the delay keeps a slow pick from being cancelled
-	let cancel: ReturnType<typeof setTimeout> | undefined;
+	// Choosing a place survives the search closing (the place can be held on the map), but not a long absence: coming
+	// back much later, a tap shouldn't save over a favourite the rider forgot they were choosing
+	const PICK_BACKGROUND_LIMIT_MS = 5 * 60_000;
 	onMount(() => {
-		const listener = Keyboard.addListener('keyboardWillHide', () => {
-			clearTimeout(cancel);
-			cancel = setTimeout(() => pick.set(null), 400);
+		let leftAt: number | null = null;
+		const listener = App.addListener('appStateChange', ({ isActive }) => {
+			if (!isActive) leftAt = Date.now();
+			else if (leftAt !== null && Date.now() - leftAt > PICK_BACKGROUND_LIMIT_MS) cancelPick();
+			if (isActive) leftAt = null;
 		}).catch(() => null); // not implemented on web
-		const showListener = Keyboard.addListener('keyboardWillShow', () => clearTimeout(cancel)).catch(() => null);
 		return () => {
 			close = null;
-			clearTimeout(cancel);
 			listener.then(l => l?.remove());
-			showListener.then(l => l?.remove());
 		};
 	});
 </script>

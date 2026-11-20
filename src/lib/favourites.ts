@@ -4,7 +4,7 @@ import { Preferences } from '@capacitor/preferences';
 import { derived, get, writable } from 'svelte/store';
 import type { SearchHistoryEntry } from './search-history';
 import { buzz } from './hold';
-import { routeDestination } from './routing';
+import { reverseGeocode } from './geocoding';
 import { t } from './translations';
 
 const STORAGE_KEY = 'multiFavourites';
@@ -92,8 +92,7 @@ export function resetFavouritesForTest() {
 	hiddenSlots.set([]);
 	pick.set(null);
 	favouriteMenu.set(null);
-	if (waiting) clearTimeout(waiting.timer);
-	waiting = null;
+	lastPickAt = -Infinity;
 }
 
 async function change(next: (list: Favourite[]) => Favourite[]) {
@@ -226,9 +225,10 @@ export function saveEffects(list: Favourite[], destination: SearchHistoryEntry, 
 export const favouriteLabel = derived(t, text => (f: Favourite) => f.kind === 'home' ? text('multi_fav_home') : f.kind === 'work' ? text('multi_fav_work') : f.label);
 
 /**
- * Pick mode: the next destination the rider picks in the search (result, recent search or station) becomes Home or
- * Work, is offered for saving ("Add"), or becomes a favourite's new place ("Change place"). Cancelled when the search
- * closes without a pick (FavouritesHost) or from the guide line.
+ * Pick mode ("choosing"): the next place the rider picks becomes Home or Work, is offered for saving ("Add"), or
+ * becomes a favourite's new place ("Change place"). A place is a search result, a recent search, a station tapped on
+ * the map, or a spot held on the map (map-pick.ts); none of these starts a route while choosing. It lasts until a
+ * pick, the reminder's X or Cancel, the back button, or a long time in the background (FavouritesHost).
  */
 export type Pick = { kind: SlotKind | 'add' } | { kind: 'move', favourite: Favourite };
 export const pick = writable<Pick | null>(null);
@@ -276,49 +276,59 @@ export function confirmSaved(notice: SavedNotice) {
 	buzz();
 }
 
-/** How long a pin dropped on the map may wait for its address before it is saved with its coordinates. */
-const ADDRESS_WAIT_MS = 6000;
-// A pin dropped on the map arrives first without a name; Gira+ sets it again once the address is looked up
-let waiting: { pick: Pick, lat: number, lng: number, timer: ReturnType<typeof setTimeout> } | null = null;
-
 function finishPick(current: Pick, destination: SearchHistoryEntry) {
-	void choosePicked(current, destination).then(saved => {
+	return choosePicked(current, destination).then(saved => {
 		if (saved) confirmSaved(current.kind === 'move' ? { moved: current.favourite } : { kind: current.kind as SlotKind });
 	});
 }
 
-function waitForAddress(current: Pick, lat: number, lng: number) {
-	if (waiting) clearTimeout(waiting.timer);
-	waiting = {
-		pick: current,
-		lat,
-		lng,
-		timer: setTimeout(() => {
-			waiting = null;
-			finishPick(current, { type: 'location', lat, lng, name: `${lat.toFixed(5)}, ${lng.toFixed(5)}` });
-		}, ADDRESS_WAIT_MS),
-	};
+/** A tap on the map within this long after a pick is the release of the same gesture, not a new tap. */
+const RELEASE_GUARD_MS = 700;
+let lastPickAt = -Infinity;
+
+/** Whether choosing is on, or a pick only just happened (its release still to come): taps then don't act. */
+export function pickBusy() {
+	return get(pick) !== null || Date.now() - lastPickAt < RELEASE_GUARD_MS;
 }
 
-routeDestination.subscribe(destination => {
-	if (waiting && destination) {
-		const current = waiting.pick;
-		if (destination.name) {
-			// The address arrived, or the rider picked something else meanwhile
-			clearTimeout(waiting.timer);
-			waiting = null;
-			finishPick(current, { ...destination, name: destination.name });
-		} else {
-			waitForAddress(current, destination.lat, destination.lng);
-		}
-		return;
-	}
+/** Bumped when a tap lands on the map while choosing, so the reminder can nudge ("hold the map"). */
+export const pickNudge = writable(0);
+
+/**
+ * While choosing, a picked search result, recent search or station is saved instead of starting a route.
+ * True when it was taken.
+ */
+export function takePick(destination: SearchHistoryEntry): boolean {
 	const current = get(pick);
-	if (!current || !destination) return;
+	if (!current) return false;
 	pick.set(null);
-	if (destination.name) finishPick(current, { ...destination, name: destination.name });
-	else waitForAddress(current, destination.lat, destination.lng);
-});
+	lastPickAt = Date.now();
+	void finishPick(current, destination);
+	return true;
+}
+
+/**
+ * While choosing, a spot held on the map: saved under its address, looked up first (Gira+'s lookup gives up after a
+ * few seconds; then the coordinates are the name). True when it was taken.
+ */
+export function takeMapSpot(lat: number, lng: number): boolean {
+	const current = get(pick);
+	if (!current) return false;
+	pick.set(null);
+	lastPickAt = Date.now();
+	buzz();
+	void reverseGeocode({ lat, lng })
+		.catch(() => null)
+		.then(name => finishPick(current, { type: 'location', lat, lng, name: name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}` }));
+	return true;
+}
+
+/** Ends choosing (the reminder's X, the back button). True when it was on. */
+export function cancelPick() {
+	const on = get(pick) !== null;
+	pick.set(null);
+	return on;
+}
 
 /** How long "Remove" stays armed for its second tap. */
 export const REMOVE_CONFIRM_MS = 3000;

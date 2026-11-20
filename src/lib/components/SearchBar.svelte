@@ -33,7 +33,7 @@
 	// Gira+ Multi: favourites on top of the list; holding a row saves it
 	import Favourites from '$lib/components/Favourites.svelte';
 	import FavouritePickLine from '$lib/components/FavouritePickLine.svelte';
-	import { favourites, holdToSave, pickPlaceholder, withoutFavourites } from '$lib/favourites';
+	import { favourites, holdToSave, pickPlaceholder, takePick, withoutFavourites } from '$lib/favourites';
 	import { hold } from '$lib/hold';
 
 	interface Props {
@@ -131,6 +131,7 @@
 	}
 
 	function select(result: GeocodingResult) {
+		if (takePick({ type: 'location', lat: result.lat, lng: result.lng, name: result.name })) return input?.blur(); // Gira+ Multi
 		selectedStation.set(null);
 		routeDestination.set({ type: 'location', lat: result.lat, lng: result.lng, name: result.name });
 		addToSearchHistory({ type: 'location', lat: result.lat, lng: result.lng, name: result.name });
@@ -140,6 +141,7 @@
 	function selectStation(station: StationInfo) {
 		// Same path as tapping the station on the map: the route ends at the
 		// station, and its menu opens
+		if (takePick({ type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber })) return input?.blur(); // Gira+ Multi
 		selectedStation.set(station.serialNumber);
 		routeDestination.set({ type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber });
 		addToSearchHistory({ type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber });

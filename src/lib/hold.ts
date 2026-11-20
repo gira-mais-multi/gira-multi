@@ -21,8 +21,11 @@ export function buzz() {
 	}
 }
 
-/** Swallows the click that the finger ending a hold sends, wherever it lands. */
-function swallowReleaseClick() {
+/**
+ * Swallows the click that the finger ending a hold sends, wherever it lands. `lifted`: the finger already lifted,
+ * so the click can only come within the next moment.
+ */
+function swallowReleaseClick(lifted = false) {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	const swallow = (event: MouseEvent) => {
 		event.preventDefault();
@@ -42,7 +45,13 @@ function swallowReleaseClick() {
 	window.addEventListener('click', swallow, true);
 	window.addEventListener('pointerup', released, true);
 	window.addEventListener('touchend', released, true);
-	timer = setTimeout(stop, 10_000); // in case the release is never seen
+	if (lifted) released();
+	else timer = setTimeout(stop, 10_000); // in case the release is never seen
+}
+
+/** For a hold handled elsewhere (the map's): swallow the click its release may still send. */
+export function swallowNextClick() {
+	swallowReleaseClick(true);
 }
 
 export type HoldOptions = { onHold: () => void, press?: boolean };
