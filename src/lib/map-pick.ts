@@ -1,14 +1,26 @@
-// Gira+ Multi: choosing a favourite's place on the map. While choosing, holding a spot picks it (as a hold sets the
-// destination during a trip), tapping a station picks the station, and a tap on an empty spot only nudges the
-// reminder. None of them starts a route. Called from one-line hooks in Gira+'s Map.svelte.
+// Gira+ Multi: holds and taps on the map. Outside trips too, a destination takes a hold (Gira+ only does that during a
+// trip), so a stray tap never drops a pin. While choosing a favourite's place, holding a spot picks it, tapping a
+// station picks the station, and a tap on an empty spot only nudges the reminder; none of them starts a route.
+// Called from one-line hooks in Gira+'s Map.svelte.
 import { favouriteMenu, favouriteNotice, pickBusy, pickNudge, takeMapSpot, takePick } from './favourites';
 import { swallowNextClick } from './hold';
-import { stations } from './map.svelte';
+import { selectedStation, stations } from './map.svelte';
+import { currentTrip } from './trip';
 import type maplibregl from 'maplibre-gl';
+import { get } from 'svelte/store';
 
-/** A hold released on the map: picks the station under the finger, or the spot. True when it was taken. */
-export function pickHold(map: maplibregl.Map, event: PointerEvent, stationLayers: string[]): boolean {
-	if (!pickBusy()) return false;
+/** A tap on an empty spot drops no destination pin, outside trips as well as during them: that takes a hold. */
+export function holdForDestination(): boolean {
+	return true;
+}
+
+/**
+ * A hold released on the map. While choosing: picks the station under the finger, or the spot. Outside a trip: sets
+ * the destination the way Gira+ does during a trip (`dropPin`, its own pin drop). True when handled here; during a
+ * trip Gira+'s own code handles it.
+ */
+export function pickHold(map: maplibregl.Map, event: PointerEvent, stationLayers: string[], dropPin: (at: { lat: number, lng: number }) => void): boolean {
+	if (!pickBusy()) return holdOutsideTrip(map, event, stationLayers, dropPin);
 	const rect = map.getCanvasContainer().getBoundingClientRect();
 	const point: [number, number] = [event.clientX - rect.left, event.clientY - rect.top];
 	// The click that may follow the release would otherwise reach the map or a station as a new tap
@@ -19,6 +31,17 @@ export function pickHold(map: maplibregl.Map, event: PointerEvent, stationLayers
 	const { lat, lng } = map.unproject(point);
 	takeMapSpot(lat, lng);
 	showPin(map, lng, lat);
+	return true;
+}
+
+/** As Gira+'s trip hold: not over an open station sheet (the tap closes it) or a station (the tap opens it). */
+function holdOutsideTrip(map: maplibregl.Map, event: PointerEvent, stationLayers: string[], dropPin: (at: { lat: number, lng: number }) => void) {
+	if (get(currentTrip) !== null) return false;
+	if (get(selectedStation) != null) return true;
+	const rect = map.getCanvasContainer().getBoundingClientRect();
+	const point: [number, number] = [event.clientX - rect.left, event.clientY - rect.top];
+	if (map.queryRenderedFeatures(point, { layers: stationLayers }).length > 0) return true;
+	dropPin(map.unproject(point));
 	return true;
 }
 

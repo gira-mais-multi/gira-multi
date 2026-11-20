@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { favourites, pick, resetFavouritesForTest } from '$lib/favourites';
 import { stations, type StationInfo } from '$lib/map.svelte';
-import { pickStation, pickTap } from '$lib/map-pick';
+import { pickHold, pickStation, pickTap } from '$lib/map-pick';
+import { currentTrip, type ActiveTrip } from '$lib/trip';
+import type maplibregl from 'maplibre-gl';
 
 vi.mock('$lib/geocoding', () => ({ reverseGeocode: vi.fn(async () => null) }));
 
@@ -44,6 +46,34 @@ describe('choosing a favourite\'s place on the map', () => {
 			expect(pickTap()).toBe(false);
 			expect(pickStation('sodre')).toBe(false);
 		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it('outside a trip, a hold on an empty spot sets the destination there; on a station it leaves the tap to it', () => {
+		vi.useFakeTimers({ now: Date.now() + 60_000 });
+		try {
+			let onStation = false;
+			const map = {
+				getCanvasContainer: () => ({ getBoundingClientRect: () => ({ left: 0, top: 0 }) }),
+				queryRenderedFeatures: () => onStation ? [{ properties: { serialNumber: 'sodre' } }] : [],
+				unproject: ([x, y]: [number, number]) => ({ lat: 38 + y / 1000, lng: -9 + x / 1000 }),
+			} as unknown as maplibregl.Map;
+			const dropped: { lat: number, lng: number }[] = [];
+			const hold = { clientX: 100, clientY: 200 } as PointerEvent;
+
+			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(true);
+			expect(dropped).toEqual([{ lat: 38.2, lng: -8.9 }]);
+
+			onStation = true;
+			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(true);
+			expect(dropped).toHaveLength(1);
+
+			// during a trip, Gira+'s own hold handles it
+			currentTrip.set({} as ActiveTrip);
+			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(false);
+		} finally {
+			currentTrip.set(null);
 			vi.useRealTimers();
 		}
 	});

@@ -27,7 +27,7 @@
 	import maplibregl, { type ExpressionSpecification } from 'maplibre-gl';
 	import { onMount, tick, untrack } from 'svelte';
 	import { get } from 'svelte/store';
-	import { pickHold, pickStation, pickTap } from '$lib/map-pick'; // Gira+ Multi
+	import { holdForDestination, pickHold, pickStation, pickTap } from '$lib/map-pick'; // Gira+ Multi
 	import { fade } from 'svelte/transition';
 
 	interface Props {
@@ -318,7 +318,7 @@
 	let press: { id: number, x: number, y: number, time: number }|null = null;
 
 	function tripHoldPinDrop(e: PointerEvent) {
-		if (mapLoaded && pickHold(map, e, STATION_LAYERS)) return; // Gira+ Multi: choosing a favourite's place
+		if (mapLoaded && pickHold(map, e, STATION_LAYERS, schedulePinDrop)) return; // Gira+ Multi: choosing a favourite's place, holds outside trips
 		if (!mapLoaded || get(currentTrip) === null) return;
 		if (get(selectedStation) != null) return; // the tap closes the menu instead
 		const rect = map.getCanvasContainer().getBoundingClientRect();
@@ -402,6 +402,7 @@
 			// While riding, quick taps are too easy to land by accident —
 			// re-routing takes the deliberate hold handled by the pointer tracking
 			if (get(currentTrip) !== null) return;
+			if (holdForDestination()) return; // Gira+ Multi: a destination takes a hold outside trips too
 			schedulePinDrop(e.lngLat);
 		});
 		map.on('dblclick', cancelPendingPinDrop);
