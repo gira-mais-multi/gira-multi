@@ -1,17 +1,12 @@
 // Gira+ Multi: two hidden jokes that end on a real order of bolacha Maria. After Gira+'s own About animation (its
 // developers ride off as a bike's wheels) the bike comes back on two biscuits with an order button; seven taps on the
 // profile's header make a "Order bolacha Maria" row appear until the profile closes. Both open Continente's page for
-// its Maria biscuits: their basket only takes products added on their own page, so a link can't fill it.
+// its Maria biscuits: their basket only takes products added on their own page, so a link can't fill it (or pick how
+// many).
 import { t } from '$lib/translations';
 import { get, writable } from 'svelte/store';
 
 export const BOLACHA_URL = 'https://www.continente.pt/produto/bolachas-maria-continente-6715842.html';
-
-/** "7 packs": a new number from 1 to 12 each time. Continente's link can't set it, so it's only said. */
-export function packs(): string {
-	const count = 1 + Math.floor(Math.random() * 12);
-	return get(t)(count === 1 ? 'multi_bolacha_pack' : 'multi_bolacha_packs', { count: String(count) });
-}
 
 const BAKER_TAPS = 7;
 /** A tap later than this after the previous one starts the count again. */

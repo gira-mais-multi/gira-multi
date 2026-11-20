@@ -341,14 +341,6 @@ export const forkTranslations = {
 		en: 'Order bolacha Maria',
 		pt: 'Encomendar bolacha Maria',
 	},
-	multi_bolacha_pack: {
-		en: '1 pack',
-		pt: '1 pacote',
-	},
-	multi_bolacha_packs: {
-		en: '{{count}} packs',
-		pt: '{{count}} pacotes',
-	},
 	multi_bolacha_fetched: {
 		en: 'The developers went to get biscuits.',
 		pt: 'Os programadores foram buscar bolachas.',

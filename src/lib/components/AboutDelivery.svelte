@@ -6,7 +6,7 @@
 	import BolachaIcon from '$lib/components/BolachaIcon.svelte';
 	import BolachaMaria from '$lib/components/BolachaMaria.svelte';
 	import ProfileMenuEntry from '$lib/components/ProfileMenuEntry.svelte';
-	import { BOLACHA_URL, packs } from '$lib/bolacha';
+	import { BOLACHA_URL } from '$lib/bolacha';
 	import { t } from '$lib/translations';
 	import type { ComponentType } from 'svelte';
 	import { onDestroy } from 'svelte';
@@ -28,7 +28,6 @@
 	let nod = $state(0);
 	let back = $state(false);
 	let parked = $state(false);
-	let order = $state('');
 	let crumbs = $state<{ x: number, y: number, size: number, opacity: number }[]>([]);
 
 	let frame = 0;
@@ -45,7 +44,6 @@
 	});
 
 	function rollIn() {
-		order = packs();
 		back = true;
 		const start = performance.now();
 		const step = (now: number) => {
@@ -112,7 +110,7 @@
 			{#if parked}
 				<div in:fly={{ x: 12, duration: 300 }} class="absolute left-[136px] right-0 top-[100px] font-medium text-info leading-tight">{$t('multi_bolacha_fetched')}</div>
 				<a in:fly={{ y: 12, duration: 350, delay: 150 }} href={BOLACHA_URL} class="absolute -left-3 -right-3 top-[188px] z-10">
-					<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="{order} · Continente" external />
+					<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="Continente" external />
 				</a>
 			{/if}
 		</div>

@@ -4,7 +4,7 @@
 	// way. The countdown shows in the look of Gira+'s own toasts.
 	import BolachaIcon from '$lib/components/BolachaIcon.svelte';
 	import ProfileMenuEntry from '$lib/components/ProfileMenuEntry.svelte';
-	import { baker, bakerToast, BOLACHA_URL, packs, resetBaker } from '$lib/bolacha';
+	import { baker, bakerToast, BOLACHA_URL, resetBaker } from '$lib/bolacha';
 	import { t } from '$lib/translations';
 	import type { ComponentType } from 'svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
@@ -14,13 +14,12 @@
 	// Gira+'s menu row still types its icon the Svelte 4 way
 	const menuIcon = BolachaIcon as unknown as ComponentType;
 
-	const order = $derived($baker ? packs() : '');
 	onDestroy(resetBaker);
 </script>
 
 {#if $baker}
 	<a href={BOLACHA_URL} transition:slide={{ duration: 400 }}>
-		<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="{$t('multi_bolacha_new')} · {order}" external />
+		<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="{$t('multi_bolacha_new')} · Continente" external />
 	</a>
 {/if}
 
