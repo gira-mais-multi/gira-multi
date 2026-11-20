@@ -111,7 +111,7 @@
 			{/each}
 			{#if parked}
 				<div in:fly={{ x: 12, duration: 300 }} class="absolute left-[136px] right-0 top-[100px] font-medium text-info leading-tight">{$t('multi_bolacha_fetched')}</div>
-				<a in:fly={{ y: 12, duration: 350, delay: 150 }} href={BOLACHA_URL} class="absolute inset-x-0 top-[188px] z-10">
+				<a in:fly={{ y: 12, duration: 350, delay: 150 }} href={BOLACHA_URL} class="absolute -left-3 -right-3 top-[188px] z-10">
 					<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="{order} · Continente" external />
 				</a>
 			{/if}
