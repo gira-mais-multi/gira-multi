@@ -14,7 +14,7 @@
 	} from '$lib/rulote';
 	import { onDestroy } from 'svelte';
 
-	let { started, spinning }: { started: boolean, spinning: boolean } = $props();
+	let { turned, spinning, started }: { turned: boolean, spinning: boolean, started: boolean } = $props();
 
 	const AVATAR = '/assets/tasca-avatar.jpg';
 	/** How long the parked van keeps pacing and chanting before the page stops animating. */
@@ -28,33 +28,50 @@
 	let bubble = $state<HTMLDivElement>()!, bubbleText = $state<HTMLSpanElement>()!;
 	const hops: HTMLAnchorElement[] = [], bitEls: HTMLElement[] = [], puffEls: HTMLElement[] = [];
 
-	let scene = $state<Scene | null>(null);
+	let scene = $state.raw<Scene | null>(null);
 	let width = 310;
 	let t0 = 0;
 	let frame = 0;
 	let wheelsStopped = false;
+	let running = false;
+	let timer: ReturnType<typeof setTimeout> | undefined;
 
+	// the scene is worked out once Gira+'s block has started turning, 4.5 s before its take-off (its turn is a CSS
+	// transition, which the sum doesn't hold up)
+	$effect(() => {
+		if (!turned || timer) return;
+		timer = setTimeout(() => {
+			width = root.offsetWidth || width;
+			scene = simulate(width - 20);
+		}, 100);
+	});
 	// Gira+ sets its wheels spinning 500 ms before the take-off: the van has to be on its way before the bike moves
 	$effect(() => {
-		if (!spinning || scene) return;
-		width = root.offsetWidth || width;
+		if (!spinning || !scene || running) return;
+		running = true;
 		t0 = performance.now() + 500;
-		scene = simulate(width - 20);
 		frame = requestAnimationFrame(loop);
 	});
 	// the take-off itself sets the clock exactly
 	$effect(() => {
-		if (started && scene) t0 = performance.now();
+		if (started && running) t0 = performance.now();
 	});
-	onDestroy(() => cancelAnimationFrame(frame));
+	onDestroy(() => {
+		clearTimeout(timer);
+		cancelAnimationFrame(frame);
+	});
 
 	function loop(now: number) {
 		const t = now - t0;
+		if (t >= RUN_MS) {
+			render(t, true); // the last frame: standing still, nothing said
+			return;
+		}
 		if (t >= T_IN) render(t);
-		if (t < RUN_MS) frame = requestAnimationFrame(loop);
+		frame = requestAnimationFrame(loop);
 	}
 
-	function render(t: number) {
+	function render(t: number, quiet = false) {
 		const s = scene!, i = Math.round(clamp(t, T_IN, T_END) - T_IN), n = s.nose(t);
 		van.style.display = 'block';
 		skids.style.display = t >= T_LOCK ? 'block' : 'none';
@@ -117,16 +134,16 @@
 		driver.style.transform = `translateY(${easeOut(lerp(t, T_DUCK, T_DUCK + 300)) * 40}px) rotate(${s.head[i] * 57.3}deg)`;
 		const selling = t >= T_SHOUT;
 		const rise = (1 - smooth(lerp(t, T_POP, T_POP + 280))) * 95;
-		const pc = selling ? pace(t) : { x: 6, walking: false, dir: -1, w: 0 };
+		const pc = selling ? { ...pace(t), ...quiet ? { walking: false } : {} } : { x: 6, walking: false, dir: -1, w: 0 };
 		const step = pc.walking ? Math.abs(Math.sin(pc.w / 190 * Math.PI)) : 0;
-		const bobY = -6 * step, tilt = pc.walking ? 8 * Math.sin(pc.w / 190 * Math.PI) : selling ? 5 * Math.sin((t - T_SHOUT) / 140) : 0;
+		const bobY = -6 * step, tilt = pc.walking ? 8 * Math.sin(pc.w / 190 * Math.PI) : selling && !quiet ? 5 * Math.sin((t - T_SHOUT) / 140) : 0;
 		const land = t >= T_POP + 280 && t < T_POP + 520 ? 3 * Math.sin((t - T_POP - 280) / 240 * Math.PI) : 0; // a little squash as it lands
 		vendor.style.transform = `translate(${pc.x}px,${rise + bobY + land}px)`;
 		head.style.transform = `rotate(${tilt}deg) scaleX(${pc.dir > 0 ? -1 : 1})`;
 
 		// the bubble always comes from you: the driver's seat while barging in, the hatch once selling
 		const driving = t >= s.hit + 250 && t < ROAD_END;
-		const said = driving ? road(t, s.hit) : selling ? shout((t - T_SHOUT) % CHANT_EVERY) : '';
+		const said = quiet ? '' : driving ? road(t, s.hit) : selling ? shout((t - T_SHOUT) % CHANT_EVERY) : '';
 		bubble.style.display = said ? 'block' : 'none';
 		if (said) {
 			bubbleText.textContent = said;
@@ -189,7 +206,8 @@
 			<!-- ...and at the hatch: a white vest, chest hair, a gold chain, a dish towel on the shoulder -->
 			<div class="hatchclip"><div class="vendor" bind:this={vendor}><div class="head" bind:this={head}><img src={AVATAR} alt="" /><svg class="cap" width="46" height="18" viewBox="0 0 46 18" overflow="visible"><path d="M7 16 Q9 7 26 6 Q41 7 44 14 L44 16 Z" fill="#6e6c64" /><path d="M12 10 Q26 7 40 11 M10 13 Q26 10 43 14" stroke="#5a5852" stroke-width="1" fill="none" /><path d="M9 15 L0 17.5 Q3 13.5 10 13 Z" fill="#5a5852" /><path d="M7 16 L44 16" stroke="#4c4a45" stroke-width="1.4" /></svg><svg class="tash" width="50" height="40" viewBox="0 0 50 40"><path d="M14.6 28.3 Q17.4 27 20.6 27.8 Q21.2 29.3 19.3 29.8 Q16.8 30.1 15.4 29.7 Q14 29.4 14.6 28.3 Z" fill="#1d1d1d" /><path d="M18 31.6 L11.5 33.2" stroke="#b89a64" stroke-width=".8" stroke-linecap="round" /></svg></div>
 				<svg class="torso" width="50" height="40" viewBox="0 0 50 40"><path d="M1 40 L1 15 Q3 5 15 3 L35 3 Q47 5 49 15 L49 40 Z" fill="#ece4d8" stroke="#2a2a2a" stroke-width=".8" /><path d="M10 40 L10 12 Q11 6 14 5 L17 5 Q19 15 25 16 Q31 15 33 5 L36 5 Q39 6 40 12 L40 40 Z" fill="#f7f7f3" /><path d="M20 9 q1 -2 2 0 q1 -2 2 0 q1 -2 2 0 q1 -2 2 0 M21 12 q1 -2 2 0 q1 -2 2 0 q1 -2 2 0" stroke="#2a2a2a" stroke-width=".8" fill="none" /><path d="M14 5 Q25 24 36 5" stroke="#d4af37" stroke-width="2" fill="none" /><circle cx="25" cy="15.5" r="3.2" fill="#d4af37" stroke="#a8862a" stroke-width=".6" /><g transform="rotate(8 41 14)"><rect x="37" y="2" width="9" height="22" fill="#f4f1ea" /><path d="M37 6 L46 6 M37 11 L46 11 M37 16 L46 16 M37 21 L46 21 M40 2 L40 24 M43 2 L43 24" stroke="#b8352b" stroke-width="1.4" /></g></svg></div></div>
-			<a class="item" style="left:72px;top:104px;width:16px" href="https://portugalstore.fpf.pt/en/puma-portugal-home-jersey-2026-4069162759764" aria-label="Portugal">
+			<!-- the scarf is thin: its link is wider than it, the scarf centred in it -->
+			<a class="item" style="left:64px;top:104px;width:32px" href="https://portugalstore.fpf.pt/en/puma-portugal-home-jersey-2026-4069162759764" aria-label="Portugal">
 				<svg width="16" height="78" viewBox="0 0 16 78"><rect x="1" y="0" width="14" height="36" fill="#3f6b2a" /><rect x="1" y="36" width="14" height="34" fill="#a0322a" /><text transform="translate(11 6) rotate(90)" class="an" font-size="9.5" fill="#e8d27a" letter-spacing=".8">PORTUGAL</text><path d="M2 70 L2 77 M5 70 L5 77 M8 70 L8 77 M11 70 L11 77 M14 70 L14 77" stroke="#a0322a" stroke-width="1.5" /></svg></a>
 			<!-- the goods, a bit of a mess -->
 			<a class="item" bind:this={hops[0]} style="left:88px;top:170px;width:36px" href="https://www.continente.pt/pesquisa/?q=tremo%C3%A7os" aria-label="Tremoços">

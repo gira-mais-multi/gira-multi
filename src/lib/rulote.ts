@@ -38,7 +38,9 @@ export type Bit = { colour: string, size: number, path: Float32Array };
 export type Scene = ReturnType<typeof simulate>;
 
 /** The whole scene for a van that stops with its nose at `stopNose` (just inside the screen's right edge). */
-export function simulate(stopNose: number) {
+export function simulate(screenNose: number) {
+	// past 1128 px the take-off (1000 px) would never reach the van: on a very wide screen it stops nearer
+	const stopNose = Math.min(screenNose, 900);
 	let hit = 0;
 	while (BIKE_FRONT + takeoff(hit) < stopNose) hit++;
 	const hitSpeed = takeoff(hit) - takeoff(hit - 1); // px/ms at the moment of impact
@@ -190,6 +192,11 @@ export function simulate(stopNose: number) {
 			path[k * 3] = x;
 			path[k * 3 + 1] = y;
 			path[k * 3 + 2] = r;
+			// at rest: it stays put (and its ever smaller speeds would only slow the sum down)
+			if (vy === 0 && Math.abs(vx) < 1e-3) {
+				for (let j = k + 1; j <= T_END - hit; j++) path.set([x, y, r], j * 3);
+				break;
+			}
 		}
 		return { colour: b.colour, size: b.size, path };
 	});
