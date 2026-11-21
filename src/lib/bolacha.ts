@@ -49,13 +49,11 @@ export function bakerTap() {
 	}
 }
 
-/**
- * The name on the board: "Tasca de João" from the account's first name ("de", which suits any name, rather than
- * guessing between "do" and "da"), or the van's own Tasca do Tozé when the account has no name.
- */
+/** The name on the board: "Tasca do João" from the account's first name (the user's choice, like the van's Tasca do
+ * Tozé), or the van's own name when the account has no name. */
 export function tascaName(name: string | null | undefined) {
 	const first = name?.trim().split(/\s+/)[0];
-	return first ? `Tasca de ${first}` : 'Tasca do Tozé';
+	return first ? `Tasca do ${first}` : 'Tasca do Tozé';
 }
 
 /** The profile closed: the row goes, and the count starts again. */

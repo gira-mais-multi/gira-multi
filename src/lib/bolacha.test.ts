@@ -36,8 +36,8 @@ describe('the profile\'s hidden bolacha Maria row', () => {
 	});
 
 	it("names the tasca after the account's first name, or the van's own when there is none", () => {
-		expect(tascaName('João Pedro Silva')).toBe('Tasca de João');
-		expect(tascaName('  Maria ')).toBe('Tasca de Maria');
+		expect(tascaName('João Pedro Silva')).toBe('Tasca do João');
+		expect(tascaName('  Maria ')).toBe('Tasca do Maria');
 		expect(tascaName('')).toBe('Tasca do Tozé');
 		expect(tascaName(undefined)).toBe('Tasca do Tozé');
 	});
