@@ -1,10 +1,12 @@
 <script lang="ts">
-	// Gira+ Multi: the profile's hidden "Order bolacha Maria" row ($lib/bolacha). Seven taps on the header bring it in at
-	// the top of the menu, looking like any of Gira+'s rows; it goes when the profile closes, so it never stays in the
-	// way. The countdown shows in the look of Gira+'s own toasts.
+	// Gira+ Multi: the profile's hidden "Order bolacha Maria" row ($lib/bolacha). Seven taps on the header drop the
+	// tasca's board over the name (TascaBoard.svelte); then this row comes in at the top of the menu, looking like any of
+	// Gira+'s rows. It goes when the profile closes, so it never stays in the way. The countdown shows in the look of
+	// Gira+'s own toasts.
 	import BolachaIcon from '$lib/components/BolachaIcon.svelte';
 	import ProfileMenuEntry from '$lib/components/ProfileMenuEntry.svelte';
-	import { baker, bakerToast, BOLACHA_URL, resetBaker } from '$lib/bolacha';
+	import { user } from '$lib/account';
+	import { baker, bakerToast, BOLACHA_URL, resetBaker, tascaName } from '$lib/bolacha';
 	import { t } from '$lib/translations';
 	import type { ComponentType } from 'svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
@@ -18,8 +20,9 @@
 </script>
 
 {#if $baker}
-	<a href={BOLACHA_URL} transition:slide={{ duration: 400 }}>
-		<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="{$t('multi_bolacha_new')} · Continente" external />
+	<!-- once the board has swung into place -->
+	<a href={BOLACHA_URL} in:slide={{ duration: 400, delay: 1300 }} out:slide={{ duration: 400 }}>
+		<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="{tascaName($user?.name)} · Continente" external />
 	</a>
 {/if}
 

@@ -6,8 +6,10 @@ import { userCredentials } from '$lib/account';
 import type { AccountSnapshot } from '$lib/gira-api/models';
 import { mainAccount, sameEmail, savedAccounts } from '$lib/accounts';
 import { bakerTap } from '$lib/bolacha';
+import TascaBoard from '$lib/components/TascaBoard.svelte';
 import { hold } from '$lib/hold';
 import { SIDEWAYS_COMMIT_PX, swipeSideways } from '$lib/swipe';
+import { mount, unmount } from 'svelte';
 import { get, writable } from 'svelte/store';
 
 const SLIDE_MS = 180;
@@ -121,14 +123,17 @@ export function profileHeader(node: HTMLElement) {
 	});
 
 	const held = hold(node, { onHold: toggleMain, press: false }); // no press colour: the header has no rounded box to fill
-	// Seven taps make the bolacha Maria row appear ($lib/bolacha)
+	// Seven taps turn the profile into a tasca ($lib/bolacha): its board hangs over the name, inside the header
 	node.addEventListener('click', bakerTap);
+	node.style.position = 'relative';
+	const board = mount(TascaBoard, { target: node, props: { header: node } });
 
 	return {
 		destroy() {
 			drag.destroy();
 			held.destroy();
 			node.removeEventListener('click', bakerTap);
+			void unmount(board);
 			stopPage();
 			stopPending();
 			stopAccount();

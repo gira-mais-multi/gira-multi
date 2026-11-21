@@ -1,0 +1,7 @@
+/* Gira+ Multi: Anton, the poster font of the Tasca do Tozé jokes (AboutDelivery.svelte, TascaBoard.svelte). Bundled
+   with the app (static/fonts, SIL Open Font License, see Anton-OFL.txt there) so nothing is fetched. */
+@font-face {
+	font-family: 'Anton';
+	src: url('/fonts/anton-latin-400.woff2') format('woff2');
+	font-display: block;
+}
