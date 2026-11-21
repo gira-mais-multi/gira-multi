@@ -50,7 +50,7 @@ export function simulate(screenNose: number) {
 	function nose(t: number) {
 		if (t < T_STOP) {
 			const u = lerp(t, T_IN, T_STOP);
-			return stopNose + 140 * (1 - u) * (1 - u);
+			return stopNose + (Math.max(stopNose, screenNose) + 140 - stopNose) * (1 - u) * (1 - u); // from off the screen's edge
 		}
 		let n = stopNose;
 		if (t >= hit) n += 3 * easeOut(lerp(t, hit, hit + 150));
