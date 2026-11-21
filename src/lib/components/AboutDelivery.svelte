@@ -6,7 +6,7 @@
 	// Laid over the spot of Gira+'s "Made by" block, in the same coordinates: the zero-height box and its negative margin
 	// leave Gira+'s layout as it was. From the moment of the hit the fork moves Gira+'s block itself (the next element).
 	import '$lib/anton.css';
-	import { BOLACHA_URL } from '$lib/bolacha';
+	import { BOLACHA_URL, tasca } from '$lib/bolacha';
 	import { CASTANHAS, MINIS, ROLLS, SARDINHAS, TREMOCOS } from '$lib/rulote-art';
 	import {
 		CHANT_EVERY, easeOut, GROUND, lerp, pace, road, ROAD_END, type Scene, SHOVE, shout, simulate, smooth, T_DUCK, T_END, T_IN, T_LOCK, T_POP,
@@ -181,7 +181,9 @@
 				<g transform="rotate(-2.5 162 54)">
 					<path d="M112 66 L112 74 M212 66 L212 74" stroke="#6b6b6b" stroke-width="3" />
 					<rect x="90" y="38" width="144" height="30" rx="2" fill="#7a5a38" /><path d="M90 48 L234 48 M90 58 L234 58" stroke="#68492c" stroke-width="1" />
-					<text x="162" y="61" text-anchor="middle" class="an" font-size="19" fill="#efe6cf" letter-spacing="1" rotate="-4 3 -2 5 -3 0 4 -2 0 -5 3 -1 4" dy="0 1 -1 1 0 0 -1 1 0 1 -1 0 1">TASCA DO TOZÉ</text>
+					<!-- the main account's tasca; a long name is squeezed to fit the board -->
+					<text x="162" y="61" text-anchor="middle" class="an" font-size="19" fill="#efe6cf" letter-spacing="1" textLength={$tasca.length > 14 ? 134 : undefined} lengthAdjust="spacingAndGlyphs"
+						rotate="-4 3 -2 5 -3 0 4 -2 0 -5 3 -1 4 2 -3 1 -2 4 -1 3" dy="0 1 -1 1 0 0 -1 1 0 1 -1 0 1 0 -1 1 0 -1 1 0">{$tasca.toUpperCase()}</text>
 				</g>
 				<!-- the hatch, a crooked awning propped on a broom, the counter -->
 				<rect x="82" y="104" width="162" height="92" rx="3" fill="#2b2b2b" />

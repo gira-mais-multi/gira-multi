@@ -3,13 +3,12 @@
 	// over the account's name on two wires and swings until it hangs crooked: the profile is now their tasca. Put in
 	// the header by its action (profile-accounts.ts), so it moves with the header when swiping between accounts.
 	import '$lib/anton.css';
-	import { user } from '$lib/account';
-	import { baker, tascaName } from '$lib/bolacha';
+	import { baker, tasca } from '$lib/bolacha';
 
 	/** The header it hangs in: its first block (caption, name, email) is what the board covers. */
 	let { header }: { header: HTMLElement } = $props();
 
-	const label = $derived(tascaName($user?.name).toUpperCase());
+	const label = $derived($tasca.toUpperCase());
 	let top = $state(-14);
 	/** Hung: it stops swinging for good, so hiding the header for a moment (swiping accounts) doesn't drop it again. */
 	let hung = $state(false);

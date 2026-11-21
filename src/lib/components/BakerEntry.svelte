@@ -5,8 +5,7 @@
 	// Gira+'s own toasts.
 	import BolachaIcon from '$lib/components/BolachaIcon.svelte';
 	import ProfileMenuEntry from '$lib/components/ProfileMenuEntry.svelte';
-	import { user } from '$lib/account';
-	import { baker, bakerToast, BOLACHA_URL, resetBaker, tascaName } from '$lib/bolacha';
+	import { baker, bakerToast, BOLACHA_URL, resetBaker, tasca } from '$lib/bolacha';
 	import { t } from '$lib/translations';
 	import type { ComponentType } from 'svelte';
 	import IconAlertTriangle from '@tabler/icons-svelte/icons/alert-triangle';
@@ -22,7 +21,7 @@
 {#if $baker}
 	<!-- once the board has swung into place -->
 	<a href={BOLACHA_URL} in:slide={{ duration: 400, delay: 1300 }} out:slide={{ duration: 400 }}>
-		<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="{tascaName($user?.name)} · Continente" external />
+		<ProfileMenuEntry icon={menuIcon} text={$t('multi_bolacha_order')} subtext="{$tasca} · Continente" external />
 	</a>
 {/if}
 

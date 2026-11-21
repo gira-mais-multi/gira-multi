@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { baker, bakerTap, bakerToast, resetBaker, tascaName } from '$lib/bolacha';
+import type { SavedAccount } from '$lib/accounts';
 import { appSettings } from '$lib/settings';
 
 describe('the profile\'s hidden bolacha Maria row', () => {
@@ -35,10 +36,12 @@ describe('the profile\'s hidden bolacha Maria row', () => {
 		expect(get(baker)).toBe(false);
 	});
 
-	it("names the tasca after the account's first name, or the van's own when there is none", () => {
-		expect(tascaName('João Pedro Silva')).toBe('Tasca do João');
-		expect(tascaName('  Maria ')).toBe('Tasca do Maria');
-		expect(tascaName('')).toBe('Tasca do Tozé');
-		expect(tascaName(undefined)).toBe('Tasca do Tozé');
+	it("names the tasca after the main account's first name, else the first saved account's, else the van's own", () => {
+		const account = (email: string, name: string) => ({ email, name, password: '', userId: null, refreshToken: null }) as SavedAccount;
+		const accounts = [account('ana@x.pt', 'Ana Costa'), account('joao@x.pt', 'João Pedro Silva')];
+		expect(tascaName(accounts, 'JOAO@x.pt')).toBe('Tasca do João');
+		expect(tascaName(accounts, null)).toBe('Tasca do Ana');
+		expect(tascaName([account('rui@x.pt', 'rui@x.pt')], null)).toBe('Tasca do Tozé'); // its name not loaded yet
+		expect(tascaName([], null)).toBe('Tasca do Tozé');
 	});
 });

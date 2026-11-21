@@ -4,7 +4,8 @@
 // the profile closes (TascaBoard.svelte, BakerEntry.svelte). Both open Continente's page for its Maria biscuits: their
 // basket only takes products added on their own page, so a link can't fill it (or pick how many).
 import { t } from '$lib/translations';
-import { get, writable } from 'svelte/store';
+import { mainAccount, sameEmail, savedAccounts, type SavedAccount } from '$lib/accounts';
+import { derived, get, writable } from 'svelte/store';
 
 export const BOLACHA_URL = 'https://www.continente.pt/produto/bolachas-maria-continente-6715842.html';
 
@@ -49,12 +50,17 @@ export function bakerTap() {
 	}
 }
 
-/** The name on the board: "Tasca do João" from the account's first name (the user's choice, like the van's Tasca do
- * Tozé), or the van's own name when the account has no name. */
-export function tascaName(name: string | null | undefined) {
-	const first = name?.trim().split(/\s+/)[0];
+/**
+ * The tasca's name, on the About van and the profile's board: "Tasca do João" from the first name of the main account,
+ * or of the first saved one when none is main (the user's choice). A name not yet loaded (the email stands in) or no
+ * account at all leaves the van's own Tasca do Tozé.
+ */
+export function tascaName(accounts: SavedAccount[], main: string | null) {
+	const owner = (main ? accounts.find(account => sameEmail(account.email, main)) : undefined) ?? accounts[0];
+	const first = owner?.name.includes('@') ? '' : owner?.name.trim().split(/\s+/)[0];
 	return first ? `Tasca do ${first}` : 'Tasca do Tozé';
 }
+export const tasca = derived([savedAccounts, mainAccount], ([accounts, main]) => tascaName(accounts, main));
 
 /** The profile closed: the row goes, and the count starts again. */
 export function resetBaker() {
