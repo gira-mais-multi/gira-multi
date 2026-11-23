@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Gira+ Multi: the saved accounts as a small menu under the map's profile button, to switch without opening the profile
 	import { accountInfo, userCredentials } from '$lib/account';
-	import { blockedForTrip, labelKey, passState, refreshAccountLabels, stopAccountLabels } from '$lib/account-labels';
+	import { cantRide, labelKey, refreshAccountLabels, stopAccountLabels } from '$lib/account-labels';
 	import { knownSnapshots } from '$lib/account-snapshot';
 	import { accountMenu, closeAccountMenu, closeAccountMenuOnTouch } from '$lib/account-menu';
 	import { sameEmail, savedAccounts, switchAccount, switchingTo, tripInProgress } from '$lib/accounts';
@@ -19,15 +19,7 @@
 	const warnAboutTrip = $derived($currentTrip !== null && tripInProgress());
 
 	// Orange icon, like Gira+'s profile button with a negative balance, when the account can't start a trip
-	function blocked(email: string, active: boolean) {
-		if (active) {
-			if ($accountInfo === null) return false;
-			const pass = $accountInfo.subscription === null ? 'none' : $accountInfo.subscription.active ? 'valid' : 'expired';
-			return blockedForTrip(pass, $accountInfo.balance ?? null);
-		}
-		const known = $knownSnapshots[labelKey(email)]?.snapshot;
-		return known !== undefined && blockedForTrip(passState(known), known.balance);
-	}
+	const blocked = (email: string, active: boolean) => cantRide(active ? $accountInfo : $knownSnapshots[labelKey(email)]?.snapshot);
 
 	$effect(() => {
 		if ($accountMenu) void refreshAccountLabels();

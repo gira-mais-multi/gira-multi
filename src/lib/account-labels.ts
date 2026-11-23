@@ -32,6 +32,9 @@ export const hasRunningTrip = (trip: VaimooCurrentTrip) => trip.activeTripId != 
  */
 export const blockedForTrip = (pass: PassState | null, balance: number | null) => (pass !== null && pass !== 'valid') || (balance !== null && balance < 0);
 
+/** The account can't start a trip, by the pass and balance last seen; nothing seen yet counts as fine. */
+export const cantRide = (snapshot: AccountSnapshot | null | undefined, now = Date.now()) => snapshot != null && blockedForTrip(passState(snapshot, now), snapshot.balance);
+
 /** The pass as Gira+'s profile shows it (active or not), and expired once its date has passed since it was seen. */
 export function passState(snapshot: AccountSnapshot, now = Date.now()): PassState {
 	const subscription = snapshot.subscription;
@@ -83,7 +86,7 @@ async function checkDue(run: number) {
 			rememberSession(account.email, session);
 			if (run !== generation) return;
 			const known = knownSnapshot(account.email, SNAPSHOT_MAX_AGE_MS);
-			const stale = known === null || blockedForTrip(passState(known), known.balance);
+			const stale = known === null || cantRide(known);
 			const [trip, snapshot] = await Promise.all([getCurrentVaimooTrip(session), stale ? accountSnapshotFor(session) : null]);
 			// The same pass and balance also make the profile's switch to this account quicker
 			if (snapshot) rememberSnapshot(account.email, snapshot);

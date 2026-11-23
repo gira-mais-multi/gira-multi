@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Gira+ Multi: pick another saved account, either to switch to it or to retry an unlock this account was refused
 	import { userCredentials } from '$lib/account';
-	import { refreshAccountLabels, stopAccountLabels } from '$lib/account-labels';
+	import { cantRide, labelKey, refreshAccountLabels, stopAccountLabels } from '$lib/account-labels';
+	import { knownSnapshots } from '$lib/account-snapshot';
 	import { mainAccount, otherAccounts, sameEmail, savedAccounts, switchAccount, switchingTo, tripInProgress, type AccountPickerRequest } from '$lib/accounts';
 	import AccountLabels from '$lib/components/AccountLabels.svelte';
 	import MainCaption from '$lib/components/MainCaption.svelte';
@@ -65,7 +66,8 @@
 				{#if $switchingTo === account.email}
 					<IconLoader2 class="animate-spin text-primary shrink-0" size={28} />
 				{:else}
-					<IconUserCircle class="text-primary shrink-0" size={28} stroke={1.75} />
+					<!-- Orange, as in the map menu, when the account can't start a trip -->
+					<IconUserCircle class="{cantRide($knownSnapshots[labelKey(account.email)]?.snapshot) ? 'text-warning' : 'text-primary'} shrink-0" size={28} stroke={1.75} />
 				{/if}
 				<div class="min-w-0">
 					{#if $mainAccount !== null && sameEmail($mainAccount, account.email)}

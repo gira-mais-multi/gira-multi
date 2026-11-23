@@ -27,7 +27,7 @@ vi.mock('$lib/vaimoo-api/client', () => ({
 }));
 
 import { VaimooNetworkError } from '$lib/vaimoo-api/client';
-import { blockedForTrip, checkedLabels, LABEL_MAX_AGE_MS, passState, refreshAccountLabels, SNAPSHOT_MAX_AGE_MS, stopAccountLabels } from './account-labels';
+import { blockedForTrip, cantRide, checkedLabels, LABEL_MAX_AGE_MS, passState, refreshAccountLabels, SNAPSHOT_MAX_AGE_MS, stopAccountLabels } from './account-labels';
 import { forgetSnapshot, knownSnapshot, rememberSnapshot } from './account-snapshot';
 
 const NOW = Date.parse('2026-10-24T12:00:00Z');
@@ -58,6 +58,15 @@ describe('blockedForTrip', () => {
 		expect(blockedForTrip('expired', 3)).toBe(true);
 		expect(blockedForTrip('none', null)).toBe(true);
 		expect(blockedForTrip(null, null)).toBe(false);
+	});
+
+	it('reads it from the last pass and balance seen (cantRide), and nothing seen as fine', () => {
+		expect(cantRide(pass(true, '2027-01-01T00:00:00Z'), NOW)).toBe(false);
+		expect(cantRide({ ...pass(true, '2027-01-01T00:00:00Z'), balance: -0.5 }, NOW)).toBe(true);
+		expect(cantRide(pass(true, '2026-10-24T11:59:00Z'), NOW)).toBe(true);
+		expect(cantRide({ balance: 0, subscription: null }, NOW)).toBe(true);
+		expect(cantRide(null)).toBe(false);
+		expect(cantRide(undefined)).toBe(false);
 	});
 });
 

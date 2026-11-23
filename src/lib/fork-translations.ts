@@ -53,18 +53,6 @@ export const forkTranslations = {
 		en: 'Trip running',
 		pt: 'Viagem a decorrer',
 	},
-	multi_pass_expired_label: {
-		en: 'Pass expired',
-		pt: 'Passe expirado',
-	},
-	multi_no_pass_label: {
-		en: 'No pass',
-		pt: 'Sem passe',
-	},
-	multi_negative_balance_label: {
-		en: 'Negative balance',
-		pt: 'Saldo negativo',
-	},
 	multi_dock_waiting_title: {
 		en: 'Confirming the trip has ended…',
 		pt: 'A confirmar o fim da viagem…',
