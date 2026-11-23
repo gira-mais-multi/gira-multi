@@ -2,11 +2,12 @@
 // already loaded. For each other account, the pass and balance are the last ones the app saw (kept on the phone), so
 // only the running trip is asked of VAIMOO: when a list of accounts is shown, at most once every LABEL_MAX_AGE_MS per
 // account, one account at a time, with two of the requests Gira+ makes for the active account (session refresh and
-// current trip). Closing the list or picking an account stops the checks still to come.
+// current trip). The pass and balance are asked again too when the last ones seen are old or say the account can't
+// ride, so one fixed elsewhere shows up. Closing the list or picking an account stops the checks still to come.
 import { accountSnapshotFor, knownSnapshot, rememberSnapshot } from '$lib/account-snapshot';
 import { otherAccounts, rememberSession, sameEmail, signIn, switchingTo } from '$lib/accounts';
 import type { AccountSnapshot } from '$lib/gira-api/models';
-import { getCurrentVaimooTrip } from '$lib/vaimoo-api/client';
+import { getCurrentVaimooTrip, VaimooNetworkError } from '$lib/vaimoo-api/client';
 import type { VaimooCurrentTrip } from '$lib/vaimoo-api/types';
 import { get, writable } from 'svelte/store';
 
@@ -47,7 +48,10 @@ export function stopAccountLabels() {
 	generation++;
 }
 
-/** Check the other accounts whose trip check is older than LABEL_MAX_AGE_MS. A failed check keeps the previous labels. */
+/**
+ * Check the other accounts whose trip check is older than LABEL_MAX_AGE_MS. A failed check keeps the previous labels and
+ * waits as long as a successful one before it's tried again; without a connection the rest wait too.
+ */
 export function refreshAccountLabels(): Promise<void> {
 	if (running && running.generation !== generation) {
 		// A stopped run is still finishing its request; check again after it, if this list is still open then
@@ -78,13 +82,17 @@ async function checkDue(run: number) {
 			// Always keep the rotated session, even when stopped meanwhile: the saved one no longer works
 			rememberSession(account.email, session);
 			if (run !== generation) return;
-			const stale = knownSnapshot(account.email, SNAPSHOT_MAX_AGE_MS) === null;
+			const known = knownSnapshot(account.email, SNAPSHOT_MAX_AGE_MS);
+			const stale = known === null || blockedForTrip(passState(known), known.balance);
 			const [trip, snapshot] = await Promise.all([getCurrentVaimooTrip(session), stale ? accountSnapshotFor(session) : null]);
 			// The same pass and balance also make the profile's switch to this account quicker
 			if (snapshot) rememberSnapshot(account.email, snapshot);
 			checkedLabels.update(all => ({ ...all, [labelKey(account.email)]: { tripRunning: hasRunningTrip(trip), checkedAt: Date.now() } }));
 		} catch (error) {
 			console.debug('Could not check a saved account', error);
+			const key = labelKey(account.email);
+			checkedLabels.update(all => ({ ...all, [key]: { tripRunning: all[key]?.tripRunning ?? false, checkedAt: Date.now() } }));
+			if (error instanceof VaimooNetworkError) return;
 		}
 	}
 }

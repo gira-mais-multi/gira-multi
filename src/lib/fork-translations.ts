@@ -61,6 +61,10 @@ export const forkTranslations = {
 		en: 'No pass',
 		pt: 'Sem passe',
 	},
+	multi_negative_balance_label: {
+		en: 'Negative balance',
+		pt: 'Saldo negativo',
+	},
 	multi_dock_waiting_title: {
 		en: 'Confirming the trip has ended…',
 		pt: 'A confirmar o fim da viagem…',

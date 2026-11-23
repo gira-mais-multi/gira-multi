@@ -20,11 +20,13 @@ vi.mock('$lib/accounts', () => ({
 	switchingTo: writable(null),
 }));
 vi.mock('$lib/vaimoo-api/client', () => ({
+	VaimooNetworkError: class VaimooNetworkError extends Error {},
 	getCurrentVaimooTrip: mocks.getCurrentVaimooTrip,
 	getVaimooSubscriptionUsage: mocks.getVaimooSubscriptionUsage,
 	getVaimooRemainingCredit: mocks.getVaimooRemainingCredit,
 }));
 
+import { VaimooNetworkError } from '$lib/vaimoo-api/client';
 import { blockedForTrip, checkedLabels, LABEL_MAX_AGE_MS, passState, refreshAccountLabels, SNAPSHOT_MAX_AGE_MS, stopAccountLabels } from './account-labels';
 import { forgetSnapshot, knownSnapshot, rememberSnapshot } from './account-snapshot';
 
@@ -87,14 +89,24 @@ describe('refreshAccountLabels', () => {
 	});
 
 	it('also asks for the pass and balance when none were seen, or only over a day ago', async () => {
+		mocks.getVaimooSubscriptionUsage.mockResolvedValue([usage('2027-01-01T00:00:00Z')]);
+		mocks.getVaimooRemainingCredit.mockResolvedValue({ remainingCredit: 2 });
 		await refreshAccountLabels();
-		expect(knownSnapshot('bob@example.com')).toMatchObject({ balance: -1.2, subscription: { active: false } });
+		expect(knownSnapshot('bob@example.com')).toMatchObject({ balance: 2, subscription: { active: true } });
 		vi.setSystemTime(NOW + LABEL_MAX_AGE_MS);
 		await refreshAccountLabels();
 		expect(mocks.getVaimooSubscriptionUsage).toHaveBeenCalledOnce();
 		vi.setSystemTime(NOW + SNAPSHOT_MAX_AGE_MS + 1);
 		await refreshAccountLabels();
 		expect(mocks.getVaimooSubscriptionUsage).toHaveBeenCalledTimes(2);
+	});
+
+	it('asks again for the pass and balance of an account that could not ride, so one fixed elsewhere shows up', async () => {
+		rememberSnapshot('bob@example.com', { balance: -1, subscription: null }, NOW - 60_000);
+		await refreshAccountLabels();
+		expect(mocks.getVaimooSubscriptionUsage).toHaveBeenCalledOnce();
+		expect(mocks.getVaimooRemainingCredit).toHaveBeenCalledOnce();
+		expect(knownSnapshot('bob@example.com')).toMatchObject({ balance: -1.2, subscription: { active: false } });
 	});
 
 	it('asks VAIMOO at most once every three minutes per account', async () => {
@@ -110,9 +122,26 @@ describe('refreshAccountLabels', () => {
 	it('keeps the previous labels when a check fails', async () => {
 		await refreshAccountLabels();
 		vi.setSystemTime(NOW + LABEL_MAX_AGE_MS);
-		mocks.getCurrentVaimooTrip.mockRejectedValue(new Error('offline'));
+		mocks.getCurrentVaimooTrip.mockRejectedValue(new Error('refused'));
 		await refreshAccountLabels();
-		expect(get(checkedLabels)['bob@example.com']).toMatchObject({ tripRunning: true, checkedAt: NOW });
+		expect(get(checkedLabels)['bob@example.com']).toMatchObject({ tripRunning: true });
+	});
+
+	it('waits as long after a failed check as after a good one, so a refused login is not retried on every opening', async () => {
+		mocks.signIn.mockRejectedValue(new Error('refused'));
+		await refreshAccountLabels();
+		vi.setSystemTime(NOW + LABEL_MAX_AGE_MS - 1);
+		await refreshAccountLabels();
+		expect(mocks.signIn).toHaveBeenCalledOnce();
+		expect(get(checkedLabels)['bob@example.com']).toMatchObject({ tripRunning: false, checkedAt: NOW });
+	});
+
+	it('leaves the other accounts for later when there is no connection', async () => {
+		mocks.others = [{ email: 'bob@example.com' }, { email: 'carol@example.com' }];
+		mocks.signIn.mockRejectedValueOnce(new VaimooNetworkError('offline', null));
+		await refreshAccountLabels();
+		expect(mocks.signIn).toHaveBeenCalledOnce();
+		expect(Object.keys(get(checkedLabels))).toEqual(['bob@example.com']);
 	});
 
 	it('checks one account at a time', async () => {

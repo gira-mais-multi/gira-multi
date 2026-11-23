@@ -15,7 +15,7 @@ Descarregue o APK em [Releases](../../releases), ou adicione o endereço deste r
 - Várias contas na mesma aplicação, sem terminar sessão
 - Troca de conta no perfil e no mapa
 - Conta principal, aberta ao iniciar a aplicação
-- Indicação das contas sem passe válido ou com saldo negativo
+- Indicação das contas sem passe válido, com saldo negativo ou com uma viagem a decorrer
 - Confirmação do fim da viagem quando a bicicleta é atracada, com aviso se a viagem não terminar
 - Registo de cada viagem, guardado apenas no telemóvel
 - Custo das viagens pagas no histórico, com filtro "Só pagas"
@@ -24,7 +24,7 @@ Descarregue o APK em [Releases](../../releases), ou adicione o endereço deste r
 - Rascunho de email para a EMEL com os dados da viagem
 - Atualizada a cada nova versão da Gira+
 
-*Several accounts in one app, without logging out · Account switching from the profile and the map · A main account, opened when the app starts · A mark on accounts without a valid pass or with a negative balance · Trip-end confirmation when the bike is docked, with a warning if the trip doesn't end · A log of each trip, kept only on the phone · The cost of paid trips in the history, with a "Paid only" filter · False trip marks in the history · Favourites at the top of the search: Home, Work, stations and other places · An email draft to EMEL with the trip's details · Updated with every new Gira+ release*
+*Several accounts in one app, without logging out · Account switching from the profile and the map · A main account, opened when the app starts · A mark on accounts without a valid pass, with a negative balance or with a trip running · Trip-end confirmation when the bike is docked, with a warning if the trip doesn't end · A log of each trip, kept only on the phone · The cost of paid trips in the history, with a "Paid only" filter · False trip marks in the history · Favourites at the top of the search: Home, Work, stations and other places · An email draft to EMEL with the trip's details · Updated with every new Gira+ release*
 
 ## Como usar / How to use
 
