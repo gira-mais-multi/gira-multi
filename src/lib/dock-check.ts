@@ -12,11 +12,10 @@ export type DockCheck = { kind: DockCheckKind, tripCode: string };
 export const dockCheck = writable<DockCheck | null>(null);
 
 let current: DockCheck | null = null;
-/** A stuck or problem card the rider dismissed: its trip's end still says so, replacing that notification. */
+/** A stuck or problem card the rider dismissed: if its trip ends after all, the card still says so. */
 let dismissed: string | null = null;
 let endedTimer: ReturnType<typeof setTimeout> | undefined;
 
-// The ended, stuck and problem steps also reach the rider as a notification (trip-notify.ts watches this store)
 function show(next: DockCheck | null) {
 	clearTimeout(endedTimer);
 	endedTimer = undefined;

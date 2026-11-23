@@ -85,18 +85,6 @@ export const forkTranslations = {
 		en: "The bike reports it's in the dock, but EMEL still shows this trip open. Note the time.",
 		pt: 'A bicicleta indica que está na doca, mas a EMEL ainda mostra esta viagem aberta. Anote a hora.',
 	},
-	multi_notify_ended_message: {
-		en: 'It ended at {{time}}.',
-		pt: 'Terminou às {{time}}.',
-	},
-	multi_notify_channel_name: {
-		en: 'Trip end',
-		pt: 'Fim da viagem',
-	},
-	multi_notify_channel_description: {
-		en: "Says when the trip ends after docking the bike, or if it doesn't end.",
-		pt: 'Avisa quando a viagem termina depois de atracar a bicicleta, ou se não terminar.',
-	},
 	multi_dock_problem_title: {
 		en: "The trip hasn't ended yet",
 		pt: 'A viagem ainda não terminou',
