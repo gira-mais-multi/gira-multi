@@ -9,6 +9,7 @@ import type { AccountSnapshot } from '$lib/gira-api/models';
 import { setGhostTripHandler, setTripDockedListener } from '$lib/ghost-trip';
 import { currentTrip, DEBUG_TRIP_CODE, tripRating, tripStatusInFlight } from '$lib/trip';
 import { setActiveTripRefusalHandler } from '$lib/unlock-fallback';
+import { startupLogin, type StartupLogin } from '$lib/startup-login';
 import { InvalidCredentialsError, loginWithEmel, refreshVaimooSession } from '$lib/vaimoo-api/client';
 import type { VaimooSession } from '$lib/vaimoo-api/types';
 import { Preferences } from '@capacitor/preferences';
@@ -123,17 +124,20 @@ function setTripAccount(email: string | null) {
  * whose trip was still running, otherwise the main one. Upstream then logs in once, as it always does, just with
  * that account, so opening is no slower. Logged out stays logged out.
  */
-export async function chooseStartupAccount() {
+export async function chooseStartupAccount(login?: StartupLogin) {
 	try {
 		const read = (key: string) => Preferences.get({ key }).then(result => result.value);
-		const [stored, main, runningTripAccount, last] = await Promise.all([STORAGE_KEY, MAIN_KEY, TRIP_ACCOUNT_KEY, 'email'].map(read));
+		const [stored, main, runningTripAccount] = await Promise.all([STORAGE_KEY, MAIN_KEY, TRIP_ACCOUNT_KEY].map(read));
 		// Used for this start only: if the trip is still running, following it again sets it back
 		if (runningTripAccount) await Preferences.remove({ key: TRIP_ACCOUNT_KEY });
 		const target = runningTripAccount ?? main;
-		if (!last || !target || sameEmail(target, last)) return;
+		if (!target) return;
+		const gira = login ?? startupLogin();
+		const last = await gira.read();
+		if (!last || sameEmail(target, last)) return;
 		const account = parse(stored).find(saved => sameEmail(saved.email, target));
 		if (!account) return;
-		await Promise.all([Preferences.set({ key: 'email', value: account.email }), Preferences.set({ key: 'password', value: account.password })]);
+		await gira.write(account);
 	} catch (error) {
 		console.error('Choosing the account to open on failed', error);
 	}

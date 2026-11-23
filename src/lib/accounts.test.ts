@@ -6,6 +6,7 @@ import * as trip from '$lib/trip';
 import * as fallback from '$lib/unlock-fallback';
 import * as ghost from '$lib/ghost-trip';
 import * as accounts from './accounts';
+import { startupLogin } from '$lib/startup-login';
 import { forgetSnapshot, knownSnapshot, rememberSnapshot } from '$lib/account-snapshot';
 import { InvalidCredentialsError } from '$lib/vaimoo-api/client';
 
@@ -434,6 +435,9 @@ describe('main account', () => {
 		vi.clearAllMocks();
 	});
 
+	// Gira+ v1.7.1's Preferences keys, wherever these tests run; fork-upstream.test.ts checks the one Gira+ really uses
+	const preferencesLogin = () => startupLogin({});
+
 	function storedLogin(main: string | null, last: string | null, tripAccount: string | null = null) {
 		mocks.preferences.clear();
 		mocks.preferences.set('multi/accounts', JSON.stringify([ALICE, BOB]));
@@ -448,25 +452,38 @@ describe('main account', () => {
 
 	it('points upstream\'s saved login at the main account before it logs in', async () => {
 		storedLogin(BOB.email, ALICE.email);
-		await accounts.chooseStartupAccount();
+		await accounts.chooseStartupAccount(preferencesLogin());
 		expect(mocks.preferences.get('email')).toBe(BOB.email);
 		expect(mocks.preferences.get('password')).toBe(BOB.password);
 	});
 
 	it('opens on the account whose trip was still running, for that start only', async () => {
 		storedLogin(BOB.email, BOB.email, ALICE.email);
-		await accounts.chooseStartupAccount();
+		await accounts.chooseStartupAccount(preferencesLogin());
 		expect(mocks.preferences.get('email')).toBe(ALICE.email);
 		expect(mocks.preferences.has('multi/tripAccount')).toBe(false);
 	});
 
 	it('leaves a logged-out app and a missing main account alone', async () => {
 		storedLogin(BOB.email, null);
-		await accounts.chooseStartupAccount();
+		await accounts.chooseStartupAccount(preferencesLogin());
 		expect(mocks.preferences.has('email')).toBe(false);
 		storedLogin(null, ALICE.email);
-		await accounts.chooseStartupAccount();
+		await accounts.chooseStartupAccount(preferencesLogin());
 		expect(mocks.preferences.get('email')).toBe(ALICE.email);
+	});
+
+	it('goes through the login storage it is given, and only reads it when there is an account to open on', async () => {
+		storedLogin(BOB.email, null);
+		const gira = { read: vi.fn(async () => ALICE.email), write: vi.fn(async () => {}) };
+		await accounts.chooseStartupAccount(gira);
+		expect(gira.write).toHaveBeenCalledWith(expect.objectContaining({ email: BOB.email, password: BOB.password }));
+		storedLogin(null, null);
+		gira.read.mockClear();
+		gira.write.mockClear();
+		await accounts.chooseStartupAccount(gira);
+		expect(gira.read).not.toHaveBeenCalled();
+		expect(gira.write).not.toHaveBeenCalled();
 	});
 
 	it('is saved, and forgotten with its account', async () => {
