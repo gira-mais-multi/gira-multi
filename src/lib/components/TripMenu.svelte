@@ -54,6 +54,13 @@
 		senderCopied = true;
 	}
 
+	// Gira+'s Dialog stops every finger scroll on the page while it's open; the email preview and the text box keep theirs
+	function scrollable(node: HTMLElement) {
+		const keep = (event: TouchEvent) => event.stopPropagation();
+		node.addEventListener('touchmove', keep, { passive: true });
+		return { destroy: () => node.removeEventListener('touchmove', keep) };
+	}
+
 	// While the keyboard is open on the text step, the window sits at the top of the visible area instead of the
 	// centre. Kept here rather than in Gira+'s Dialog so upstream updates merge cleanly. The phone scrolls the screen
 	// to the text box and the Dialog lifts by the keyboard height; pinned to the visible top, neither moves it off screen
@@ -115,7 +122,7 @@
 		</div>
 	{:else if step === 'text'}
 		<h1 class="text-lg font-semibold text-info">{$t('multi_email_text_title')}</h1>
-		<textarea bind:value={text} rows="6" placeholder={$t('multi_email_text_placeholder')}
+		<textarea use:scrollable bind:value={text} rows="6" placeholder={$t('multi_email_text_placeholder')}
 			class="w-full resize-none rounded-lg border border-background-tertiary bg-background-secondary text-sm text-info placeholder-label focus:border-primary focus:ring-primary"
 		></textarea>
 		<div class="text-xs text-label">{$t('multi_email_text_message')}</div>
@@ -136,7 +143,7 @@
 			<div class="text-xs text-label">{$t('multi_email_send_from_hint')}</div>
 		{/if}
 		<div class="text-sm text-label">{$t('multi_email_send_message')}</div>
-		<pre class="whitespace-pre-wrap font-sans text-xs text-info bg-background-secondary rounded-lg p-3 max-h-44 overflow-y-auto">{draft.body}</pre>
+		<pre use:scrollable class="whitespace-pre-wrap font-sans text-xs text-info bg-background-secondary rounded-lg p-3 max-h-44 overflow-y-auto overscroll-contain">{draft.body}</pre>
 		<div class="flex justify-end items-center gap-5 mt-1 font-bold">
 			<button class="text-label" onclick={() => openText(false)}>{$t('multi_edit_email_text')}</button>
 			<a href={draft.url} class="text-primary" onclick={dismiss}>{$t('multi_open_email')}</a>
