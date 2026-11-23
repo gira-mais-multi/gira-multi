@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Gira+ Multi: the saved accounts as a small menu under the map's profile button, to switch without opening the profile
 	import { accountInfo, userCredentials } from '$lib/account';
-	import { blockedForTrip, checkedLabels, labelKey, refreshAccountLabels } from '$lib/account-labels';
+	import { blockedForTrip, labelKey, passState, refreshAccountLabels, stopAccountLabels } from '$lib/account-labels';
+	import { knownSnapshots } from '$lib/account-snapshot';
 	import { accountMenu, closeAccountMenu, closeAccountMenuOnTouch } from '$lib/account-menu';
 	import { sameEmail, savedAccounts, switchAccount, switchingTo, tripInProgress } from '$lib/accounts';
 	import AccountLabels from '$lib/components/AccountLabels.svelte';
@@ -24,16 +25,18 @@
 			const pass = $accountInfo.subscription === null ? 'none' : $accountInfo.subscription.active ? 'valid' : 'expired';
 			return blockedForTrip(pass, $accountInfo.balance ?? null);
 		}
-		const labels = $checkedLabels[labelKey(email)];
-		return labels !== undefined && blockedForTrip(labels.pass, labels.balance ?? null);
+		const known = $knownSnapshots[labelKey(email)]?.snapshot;
+		return known !== undefined && blockedForTrip(passState(known), known.balance);
 	}
 
 	$effect(() => {
 		if ($accountMenu) void refreshAccountLabels();
+		else stopAccountLabels();
 	});
 
 	async function choose(email: string) {
 		if ($switchingTo || isActive(email)) return;
+		stopAccountLabels();
 		const result = await switchAccount(email);
 		closeAccountMenu();
 		if (result === 'invalid-credentials') errorMessages.add($t('multi_switch_invalid_credentials', { email }), 5000);

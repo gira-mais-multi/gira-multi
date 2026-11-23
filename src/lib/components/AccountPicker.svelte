@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Gira+ Multi: pick another saved account, either to switch to it or to retry an unlock this account was refused
 	import { userCredentials } from '$lib/account';
-	import { refreshAccountLabels } from '$lib/account-labels';
+	import { refreshAccountLabels, stopAccountLabels } from '$lib/account-labels';
 	import { mainAccount, otherAccounts, sameEmail, savedAccounts, switchAccount, switchingTo, tripInProgress, type AccountPickerRequest } from '$lib/accounts';
 	import AccountLabels from '$lib/components/AccountLabels.svelte';
 	import MainCaption from '$lib/components/MainCaption.svelte';
@@ -25,9 +25,13 @@
 	const warnAboutTrip = $derived(request.reason === 'switch' && $currentTrip !== null && tripInProgress());
 	let error = $state('');
 
-	onMount(() => void refreshAccountLabels());
+	onMount(() => {
+		void refreshAccountLabels();
+		return stopAccountLabels;
+	});
 
 	async function choose(email: string) {
+		stopAccountLabels();
 		error = '';
 		const result = await switchAccount(email);
 		if (result === 'ok') {

@@ -1,7 +1,9 @@
 <script lang="ts">
-	// Gira+ Multi: small tags under a saved account: trip running, pass expired or missing
+	// Gira+ Multi: small tags under a saved account: trip running, pass expired or missing (the last pass seen, for the
+	// other accounts)
 	import { accountInfo } from '$lib/account';
-	import { checkedLabels, labelKey, type PassState } from '$lib/account-labels';
+	import { checkedLabels, labelKey, passState, type PassState } from '$lib/account-labels';
+	import { knownSnapshots } from '$lib/account-snapshot';
 	import { t } from '$lib/translations';
 	import { currentTrip, DEBUG_TRIP_CODE } from '$lib/trip';
 
@@ -9,7 +11,8 @@
 
 	const checked = $derived(active ? null : $checkedLabels[labelKey(email)] ?? null);
 	const tripRunning = $derived(active ? $currentTrip !== null && $currentTrip.code !== DEBUG_TRIP_CODE && !$currentTrip.finished : checked?.tripRunning ?? false);
-	const pass = $derived(active ? activePass() : checked?.pass ?? null);
+	const known = $derived(active ? null : $knownSnapshots[labelKey(email)]?.snapshot ?? null);
+	const pass = $derived(active ? activePass() : known && passState(known));
 
 	function activePass(): PassState | null {
 		if ($accountInfo === null) return null;

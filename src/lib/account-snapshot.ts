@@ -4,6 +4,8 @@
 import type { AccountSnapshot } from '$lib/gira-api/models';
 import { getVaimooRemainingCredit, getVaimooSubscriptionUsage } from '$lib/vaimoo-api/client';
 import type { VaimooSession, VaimooSubscriptionUsage } from '$lib/vaimoo-api/types';
+import { Preferences } from '@capacitor/preferences';
+import { get, writable } from 'svelte/store';
 
 export const isUsageExpired = (item: VaimooSubscriptionUsage, now = Date.now()) => item.isExpired ?? new Date(item.expirationDate).getTime() <= now;
 
@@ -21,23 +23,62 @@ export function snapshotFrom(remainingCredit: number, usage: VaimooSubscriptionU
 	};
 }
 
-/** The last pass and balance seen for each saved account, by lower-cased email, with when they were seen. */
-const known = new Map<string, { snapshot: AccountSnapshot, seenAt: number }>;
+export type KnownSnapshot = { snapshot: AccountSnapshot, seenAt: number };
+
+/**
+ * The last pass and balance seen for each saved account, by lower-cased email, with when they were seen. Kept on the
+ * phone, so the map menu can label the other accounts after a restart without asking VAIMOO.
+ */
+export const knownSnapshots = writable<Record<string, KnownSnapshot>>({});
+
+const SNAPSHOTS_KEY = 'multi/snapshots';
+const key = (email: string) => email.trim().toLowerCase();
+let loaded = false;
+
+function save() {
+	if (loaded) void Preferences.set({ key: SNAPSHOTS_KEY, value: JSON.stringify(get(knownSnapshots)) });
+}
+
+function revive(entry: unknown): KnownSnapshot | null {
+	const { snapshot, seenAt } = (entry ?? {}) as Partial<KnownSnapshot>;
+	if (typeof seenAt !== 'number' || typeof snapshot?.balance !== 'number') return null;
+	const subscription = snapshot.subscription ? { ...snapshot.subscription, expiresAt: new Date(snapshot.subscription.expiresAt) } : null;
+	if (subscription && isNaN(subscription.expiresAt.getTime())) return null;
+	return { snapshot: { balance: snapshot.balance, subscription }, seenAt };
+}
+
+/** Load the pass and balance kept on the phone; anything seen since the app started wins. */
+export async function loadSnapshots() {
+	try {
+		const { value } = await Preferences.get({ key: SNAPSHOTS_KEY });
+		const stored = Object.entries(JSON.parse(value ?? '{}') as Record<string, unknown>)
+			.flatMap(([email, entry]) => {
+				const known = revive(entry);
+				return known ? [[email, known] as const] : [];
+			});
+		knownSnapshots.update(current => ({ ...Object.fromEntries(stored), ...current }));
+	} catch (error) {
+		console.debug('Could not read the saved accounts\' pass and balance', error);
+	}
+	loaded = true;
+	save();
+}
 
 /** Keep an account's pass and balance from a request the app made anyway (the menu's check, or leaving the account). */
 export function rememberSnapshot(email: string, snapshot: AccountSnapshot, seenAt = Date.now()) {
-	known.set(email.trim().toLowerCase(), { snapshot, seenAt });
+	knownSnapshots.update(all => ({ ...all, [key(email)]: { snapshot, seenAt } }));
+	save();
 }
 
 /** Forget an account's pass and balance (when it's removed), or every account's without an email. */
 export function forgetSnapshot(email?: string) {
-	if (email === undefined) known.clear();
-	else known.delete(email.trim().toLowerCase());
+	knownSnapshots.update(all => email === undefined ? {} : Object.fromEntries(Object.entries(all).filter(([known]) => known !== key(email))));
+	save();
 }
 
 /** The account's last known pass and balance, if seen within `maxAgeMs`. */
 export function knownSnapshot(email: string, maxAgeMs = Infinity, now = Date.now()): AccountSnapshot | null {
-	const entry = known.get(email.trim().toLowerCase());
+	const entry = get(knownSnapshots)[key(email)];
 	return entry && now - entry.seenAt <= maxAgeMs ? entry.snapshot : null;
 }
 

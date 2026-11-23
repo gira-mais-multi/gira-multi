@@ -111,7 +111,7 @@ describe('the rules the fork copied from Gira+ still match it', () => {
 		mocks.getVaimooSubscriptionUsage.mockResolvedValue(usages);
 		const upstream = await getAccountSnapshot();
 		expect(snapshotFrom(-1.25, usages)).toEqual(upstream);
-		expect(passState(usages)).toBe(upstream.subscription === null ? 'none' : upstream.subscription.active ? 'valid' : 'expired');
+		expect(passState(snapshotFrom(-1.25, usages))).toBe(upstream.subscription === null ? 'none' : upstream.subscription.active ? 'valid' : 'expired');
 	});
 
 	it.each([null, 0, -1, 7])('a running trip (hasRunningTrip) with activeTripId %s', async activeTripId => {

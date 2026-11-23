@@ -2,7 +2,7 @@
 // $lib/account exactly as upstream keeps it (one token, one set of credentials); this module keeps the
 // others next to it and swaps them in, so upstream's login and token refresh code stays untouched.
 import { accountInfo, logOut, refreshAccountInfo, token, tokenRefreshInFlight, updateUserInfo, user, userCredentials } from '$lib/account';
-import { accountSnapshotFor, forgetSnapshot, knownSnapshot, rememberSnapshot } from '$lib/account-snapshot';
+import { accountSnapshotFor, forgetSnapshot, knownSnapshot, loadSnapshots, rememberSnapshot } from '$lib/account-snapshot';
 import { reportApiError } from '$lib/error-reporting';
 import { stopBackendSync } from '$lib/gira-api/backend-sync';
 import type { AccountSnapshot } from '$lib/gira-api/models';
@@ -158,6 +158,7 @@ async function start() {
 	const [stored, main] = await Promise.all([STORAGE_KEY, MAIN_KEY].map(key => Preferences.get({ key }).then(result => result.value)));
 	savedAccounts.set(parse(stored));
 	mainAccount.set(main || null);
+	void loadSnapshots();
 	// chooseStartupAccount has used up the stored one; following a trip sets it again
 	tripAccount = null;
 

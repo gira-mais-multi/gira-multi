@@ -1,6 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { VaimooSubscriptionUsage } from '$lib/vaimoo-api/types';
-import { forgetSnapshot, knownSnapshot, rememberSnapshot, snapshotFrom } from './account-snapshot';
+
+const stored = vi.hoisted(() => new Map<string, string>);
+vi.mock('@capacitor/preferences', () => ({
+	Preferences: {
+		get: async ({ key }: { key: string }) => ({ value: stored.get(key) ?? null }),
+		set: async ({ key, value }: { key: string, value: string }) => void stored.set(key, value),
+	},
+}));
+
+import { forgetSnapshot, knownSnapshot, knownSnapshots, loadSnapshots, rememberSnapshot, snapshotFrom } from './account-snapshot';
 
 const NOW = Date.parse('2026-10-24T12:00:00Z');
 
@@ -38,5 +47,17 @@ describe('known snapshots', () => {
 		expect(knownSnapshot('bob@example.com', 3_000, 5_000)).toBeNull();
 		forgetSnapshot('BOB@example.com');
 		expect(knownSnapshot('bob@example.com')).toBeNull();
+	});
+
+	it('are kept on the phone and come back after a restart, with the pass date', async () => {
+		forgetSnapshot();
+		stored.set('multi/snapshots', JSON.stringify({ 'bob@example.com': { snapshot: snapshotFrom(-1, [usage('Passe Anual', '2027-01-01T00:00:00Z')], NOW), seenAt: 1_000 }, 'broken@example.com': { snapshot: {} } }));
+		await loadSnapshots();
+		expect(knownSnapshot('bob@example.com')?.subscription?.expiresAt).toEqual(new Date('2027-01-01T00:00:00Z'));
+		expect(knownSnapshot('broken@example.com')).toBeNull();
+		rememberSnapshot('carol@example.com', { balance: 3, subscription: null }, 2_000);
+		knownSnapshots.set({});
+		await loadSnapshots();
+		expect(knownSnapshot('carol@example.com')).toEqual({ balance: 3, subscription: null });
 	});
 });
