@@ -14,8 +14,8 @@ function versionParts(version: string) {
 
 /**
  * Compare two versions (with or without a 'v' prefix or a `-dev (hash)` suffix): 1 if version1 > version2,
- * -1 if lower, 0 if equal. The fork's `-multi.N` revision orders releases of the same upstream version,
- * so 1.7.1 < 1.7.1-multi.1 < 1.7.1-multi.2 < 1.7.2.
+ * -1 if lower, 0 if equal. The fork's revision orders releases of the same upstream version, in its old `-multi.N`
+ * form or as a fourth number: 1.7.1 < 1.7.1-multi.1 < 1.7.1-multi.5 < 1.7.1.6 < 1.7.1.7 < 1.7.2.
  */
 export function compareVersions(version1: string, version2: string) {
 	const v1 = versionParts(version1);

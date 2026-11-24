@@ -1,6 +1,7 @@
 // Gira+ Multi: stamps a release version on the working tree, for the multi-release workflow only.
-// Releases are named after the upstream version they're built on plus a revision (1.7.1-multi.1, 1.7.1-multi.2,
-// then 1.7.2-multi.1), and Android's versionCode is upstream's times 100 plus the revision, so it always increases.
+// Releases are named after the upstream version they're built on plus a revision as a fourth number (1.7.1.6, 1.7.1.7,
+// then 1.7.2.1), which Obtainium can compare; the first releases were named 1.7.1-multi.1 to 1.7.1-multi.5, and the
+// revisions carry on after them. Android's versionCode is upstream's times 100 plus the revision, so it always increases.
 // Nothing here is committed: upstream's version lines stay untouched and rebases don't conflict on them.
 import { execSync } from 'node:child_process';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
@@ -8,20 +9,20 @@ import { pathToFileURL } from 'node:url';
 
 const MAX_REVISION = 99;
 
-/** The revision after the highest one already tagged for this upstream version. */
+/** The revision after the highest one already tagged for this upstream version, in either naming. */
 export function nextRevision(baseVersion, tags) {
-	const prefix = `v${baseVersion}-multi.`;
+	const prefixes = [`v${baseVersion}.`, `v${baseVersion}-multi.`];
 	const revisions = tags
-		.filter(tag => tag.startsWith(prefix))
-		.map(tag => Number(tag.slice(prefix.length)))
-		.filter(Number.isInteger);
+		.flatMap(tag => prefixes.filter(prefix => tag.startsWith(prefix)).map(prefix => tag.slice(prefix.length)))
+		.filter(revision => /^\d+$/.test(revision))
+		.map(Number);
 	const next = Math.max(0, ...revisions) + 1;
 	if (next > MAX_REVISION) throw new Error(`Too many releases of ${baseVersion}: the versionCode only has room for ${MAX_REVISION}`);
 	return next;
 }
 
 export function releaseVersion(baseVersion, revision) {
-	return `${baseVersion}-multi.${revision}`;
+	return `${baseVersion}.${revision}`;
 }
 
 export function releaseVersionCode(upstreamCode, revision) {
@@ -52,7 +53,7 @@ function main() {
 	const gradle = readFileSync(gradlePath, 'utf8');
 	const baseVersion = JSON.parse(packageJson).version;
 	const upstream = readGradleVersion(gradle);
-	if (baseVersion.includes('-multi.')) throw new Error(`package.json already has a release version (${baseVersion})`);
+	if (!/^\d+\.\d+\.\d+$/.test(baseVersion)) throw new Error(`package.json has no plain upstream version (${baseVersion})`);
 	if (upstream.name !== baseVersion) throw new Error(`build.gradle (${upstream.name}) and package.json (${baseVersion}) disagree`);
 
 	const tags = execSync('git tag --list', { encoding: 'utf8' }).split('\n').map(tag => tag.trim()).filter(Boolean);

@@ -21,4 +21,13 @@ describe('compareVersions', () => {
 		expect(compareVersions('v1.7.1-multi.3', '1.7.2')).toBe(-1);
 		expect(compareVersions('v1.7.1-multi.1', '1.7.1-dev (a9fc393)')).toBe(1);
 	});
+
+	it('orders the new four-number releases after the old -multi.N ones', () => {
+		expect(compareVersions('v1.7.1.6', '1.7.1-multi.5')).toBe(1);
+		expect(compareVersions('v1.7.1-multi.5', '1.7.1.6')).toBe(-1);
+		expect(compareVersions('v1.7.1.7', '1.7.1.6')).toBe(1);
+		expect(compareVersions('v1.7.2', '1.7.1.6')).toBe(1);
+		expect(compareVersions('v1.7.2.1', '1.7.2')).toBe(1);
+		expect(compareVersions('v1.7.1.6', '1.7.1.6')).toBe(0);
+	});
 });

@@ -167,7 +167,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
-          base="${VERSION%-multi.*}"
+          base="${VERSION%.*}"
           notes="Gira+ with multiple saved accounts, built on [Gira+ v$base](https://github.com/$UPSTREAM_REPO/releases/tag/v$base).
           About this version, disclaimer and licence: [MULTI_ACCOUNT.md](https://github.com/$GH_REPO/blob/$TAG/MULTI_ACCOUNT.md)."
           gh release create "$TAG" "GiraMulti-$VERSION.apk" --target "$(git rev-parse HEAD)" --title "Gira+ Multi $VERSION" --notes "$notes" --latest
