@@ -17,7 +17,7 @@
 </script>
 
 <script lang="ts">
-	import { searchLocations, type GeocodingResult } from '$lib/geocoding';
+	import { type GeocodingResult } from '$lib/geocoding'; import { searchLocations } from '$lib/pasted-place'; // Gira+ Multi: also takes plus codes, coordinates and Maps links
 	import { searchStations } from '$lib/station-search';
 	import { addToSearchHistory, searchHistory, type SearchHistoryEntry } from '$lib/search-history';
 	import { currentPos } from '$lib/location';

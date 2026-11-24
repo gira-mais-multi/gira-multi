@@ -91,6 +91,15 @@ describe('Gira+ opens with the login the fork points it at (Main account, a trip
 	});
 });
 
+describe('pasted places go through the search of Gira+', () => {
+	it('the search bar asks the fork, which wraps the geocoder of Gira+ (same signature)', () => {
+		expect(source('./components/SearchBar.svelte')).toMatch(/import \{ searchLocations \} from '\$lib\/pasted-place';/);
+		const geocoding = source('./geocoding.ts');
+		expect(geocoding).toMatch(/export async function searchLocations\(query: string, bias\?: Coord\|null\): Promise<GeocodingResult\[\]>/);
+		expect(geocoding).toMatch(/export async function reverseGeocode\(coord: Coord\): Promise<string\|null>/);
+	});
+});
+
 describe('dock notes count from the same feed as the station menu of Gira+', () => {
 	const api = source('./gira-api/api.ts');
 
