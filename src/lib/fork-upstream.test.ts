@@ -91,6 +91,21 @@ describe('Gira+ opens with the login the fork points it at (Main account, a trip
 	});
 });
 
+describe('the map hold acts while the finger is down (the map hold of Gira+ acts on release)', () => {
+	const map = source('./components/Map.svelte');
+
+	it('Gira+ hands every map hold, on release, to tripHoldPinDrop, which first asks the fork (pickHold)', () => {
+		expect(map).toMatch(/e\.type === 'pointerup' && held >= TRIP_PIN_HOLD_ms[^\n]*tripHoldPinDrop\(e\)/);
+		expect(map).toMatch(/function tripHoldPinDrop\(e: PointerEvent\) \{\s*if \(mapLoaded && pickHold\(/);
+		expect(map).toMatch(/watchMapHold\(map\.getCanvasContainer\(\), tripHoldPinDrop\)/);
+	});
+
+	it('the pin drop of Gira+ shows the route within the second the pin of the fork stays', () => {
+		const delay = Number(map.match(/const PIN_DROP_DELAY_ms = (\d+);/)?.[1]);
+		expect(delay).toBeLessThan(1000);
+	});
+});
+
 describe('the rules the fork copied from Gira+ still match it', () => {
 	const usage = (name: string, expirationDate: string, isExpired?: boolean): VaimooSubscriptionUsage => ({
 		currentSubscription: { name, membershipType: 'Anual' },

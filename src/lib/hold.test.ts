@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { hold } from './hold';
+import { hold, HOLD_MS } from './hold';
 
 describe('hold', () => {
 	let node: HTMLButtonElement;
@@ -28,9 +28,13 @@ describe('hold', () => {
 		node.click();
 	};
 
-	it('fires after half a second and swallows the click that ends the hold', () => {
+	it('fires after 400 ms, with the finger still down, and swallows the click that ends the hold', () => {
+		expect(HOLD_MS).toBe(400);
 		press();
-		vi.advanceTimersByTime(500);
+		vi.advanceTimersByTime(HOLD_MS - 1);
+		expect(held).not.toHaveBeenCalled();
+		vi.advanceTimersByTime(1);
+		expect(held).toHaveBeenCalledOnce();
 		release();
 		expect(held).toHaveBeenCalledOnce();
 		expect(tapped).not.toHaveBeenCalled();
@@ -42,7 +46,7 @@ describe('hold', () => {
 		opened.addEventListener('click', pressed);
 		held.mockImplementation(() => document.body.append(opened));
 		press();
-		vi.advanceTimersByTime(500);
+		vi.advanceTimersByTime(HOLD_MS);
 		node.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
 		opened.click();
 		expect(pressed).not.toHaveBeenCalled();
@@ -64,7 +68,7 @@ describe('hold', () => {
 	it('treats a moving finger as scrolling', () => {
 		press(0, 0);
 		node.dispatchEvent(new PointerEvent('pointermove', { clientX: 0, clientY: 30 }));
-		vi.advanceTimersByTime(500);
+		vi.advanceTimersByTime(HOLD_MS);
 		expect(held).not.toHaveBeenCalled();
 	});
 });

@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { favourites, favouriteSheetOpen, pick, resetFavouritesForTest } from '$lib/favourites';
 import { stations, type StationInfo } from '$lib/map.svelte';
-import { PIN_AFTER_SAVE_MS, pickHold, pickStation, pickTap } from '$lib/map-pick';
+import { AFTER_TAP_MS, PIN_AFTER_SAVE_MS, pickHold, pickStation, pickTap, watchMapHold } from '$lib/map-pick';
+import { HOLD_MS } from '$lib/hold';
 import { currentTrip, type ActiveTrip } from '$lib/trip';
 import type maplibregl from 'maplibre-gl';
 
@@ -50,7 +51,7 @@ describe('choosing a favourite\'s place on the map', () => {
 		}
 	});
 
-	it('outside a trip, a hold on an empty spot sets the destination there; on a station it leaves the tap to it', () => {
+	it('a hold on an empty spot sets the destination there, in a trip or not; on a station it leaves the tap to it', () => {
 		vi.useFakeTimers({ now: Date.now() + 60_000 });
 		try {
 			let onStation = false;
@@ -58,9 +59,12 @@ describe('choosing a favourite\'s place on the map', () => {
 				getCanvasContainer: () => ({ getBoundingClientRect: () => ({ left: 0, top: 0 }) }),
 				queryRenderedFeatures: () => onStation ? [{ properties: { serialNumber: 'sodre' } }] : [],
 				unproject: ([x, y]: [number, number]) => ({ lat: 38 + y / 1000, lng: -9 + x / 1000 }),
+				getSource: () => undefined,
+				addSource: () => {},
+				addLayer: () => {},
 			} as unknown as maplibregl.Map;
 			const dropped: { lat: number, lng: number }[] = [];
-			const hold = { clientX: 100, clientY: 200 } as PointerEvent;
+			const hold = { type: 'pointerdown', clientX: 100, clientY: 200 } as PointerEvent;
 
 			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(true);
 			expect(dropped).toEqual([{ lat: 38.2, lng: -8.9 }]);
@@ -69,9 +73,14 @@ describe('choosing a favourite\'s place on the map', () => {
 			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(true);
 			expect(dropped).toHaveLength(1);
 
-			// during a trip, Gira+'s own hold handles it
+			onStation = false;
 			currentTrip.set({} as ActiveTrip);
-			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(false);
+			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(true);
+			expect(dropped).toHaveLength(2);
+
+			// Gira+'s own check when the finger lifts finds the hold already done
+			expect(pickHold(map, { ...hold, type: 'pointerup' } as PointerEvent, ['points'], at => dropped.push(at))).toBe(true);
+			expect(dropped).toHaveLength(2);
 		} finally {
 			currentTrip.set(null);
 			vi.useRealTimers();
@@ -96,7 +105,7 @@ describe('choosing a favourite\'s place on the map', () => {
 				panBy: () => {},
 			} as unknown as maplibregl.Map;
 			pick.set({ kind: 'add' });
-			expect(pickHold(map, { clientX: 10, clientY: 10 } as PointerEvent, ['points'], () => {})).toBe(true);
+			expect(pickHold(map, { type: 'pointerdown', clientX: 10, clientY: 10 } as PointerEvent, ['points'], () => {})).toBe(true);
 			expect(pins).toBe(1);
 
 			favouriteSheetOpen.set(true);
@@ -111,5 +120,71 @@ describe('choosing a favourite\'s place on the map', () => {
 			pick.set(null);
 			vi.useRealTimers();
 		}
+	});
+});
+
+describe('holding the map', () => {
+	let container: HTMLDivElement;
+	let held: PointerEvent[];
+	let stop: () => void;
+	beforeEach(() => {
+		vi.useFakeTimers();
+		container = document.createElement('div');
+		document.body.append(container);
+		held = [];
+		stop = watchMapHold(container, press => held.push(press));
+	});
+	afterEach(() => {
+		stop();
+		container.remove();
+		vi.useRealTimers();
+	});
+
+	const down = (id = 1, x = 0, y = 0) => container.dispatchEvent(new PointerEvent('pointerdown', { pointerId: id, clientX: x, clientY: y, bubbles: true }));
+	const move = (id: number, x: number, y: number) => window.dispatchEvent(new PointerEvent('pointermove', { pointerId: id, clientX: x, clientY: y }));
+	const up = (id = 1) => window.dispatchEvent(new PointerEvent('pointerup', { pointerId: id }));
+
+	it('acts after the same 400 ms as every other hold, before the finger lifts', () => {
+		down(1, 40, 50);
+		vi.advanceTimersByTime(HOLD_MS - 1);
+		expect(held).toEqual([]);
+		vi.advanceTimersByTime(1);
+		expect(held.map(press => [press.type, press.clientX, press.clientY])).toEqual([['pointerdown', 40, 50]]);
+		up();
+		expect(held).toHaveLength(1);
+	});
+
+	it('leaves taps, pans and pinches alone', () => {
+		down();
+		vi.advanceTimersByTime(200);
+		up();
+		vi.advanceTimersByTime(AFTER_TAP_MS);
+		down();
+		move(1, 0, 30);
+		vi.advanceTimersByTime(HOLD_MS);
+		up();
+		down(1);
+		down(2);
+		vi.advanceTimersByTime(HOLD_MS);
+		expect(held).toEqual([]);
+	});
+
+	it('leaves a press right after a quick tap to the tap-then-drag zoom, but not one after a pan', () => {
+		down();
+		vi.advanceTimersByTime(100);
+		up();
+		vi.advanceTimersByTime(AFTER_TAP_MS - 50);
+		down();
+		vi.advanceTimersByTime(HOLD_MS);
+		expect(held).toEqual([]);
+		up();
+
+		vi.advanceTimersByTime(AFTER_TAP_MS);
+		down();
+		move(1, 50, 0);
+		up();
+		down();
+		vi.advanceTimersByTime(HOLD_MS);
+		expect(held).toHaveLength(1);
 	});
 });

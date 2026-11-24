@@ -27,7 +27,7 @@
 	import maplibregl, { type ExpressionSpecification } from 'maplibre-gl';
 	import { onMount, tick, untrack } from 'svelte';
 	import { get } from 'svelte/store';
-	import { holdForDestination, pickHold, pickStation, pickTap } from '$lib/map-pick'; // Gira+ Multi
+	import { holdForDestination, pickHold, pickStation, pickTap, watchMapHold } from '$lib/map-pick'; // Gira+ Multi
 	import { fade } from 'svelte/transition';
 
 	interface Props {
@@ -717,6 +717,7 @@
 			if (e.type === 'pointerup' && held >= TRIP_PIN_HOLD_ms && moved <= TRIP_PIN_HOLD_TOLERANCE_px) tripHoldPinDrop(e);
 		};
 		map.getCanvasContainer().addEventListener('pointerdown', trackPointer);
+		watchMapHold(map.getCanvasContainer(), tripHoldPinDrop); // Gira+ Multi: a hold acts while the finger is down
 		window.addEventListener('pointerup', releasePointer);
 		window.addEventListener('pointercancel', releasePointer);
 		map.once('load', async () => {
