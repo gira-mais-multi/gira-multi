@@ -91,6 +91,22 @@ describe('Gira+ opens with the login the fork points it at (Main account, a trip
 	});
 });
 
+describe('dock notes count from the same feed as the station menu of Gira+', () => {
+	const api = source('./gira-api/api.ts');
+
+	it('the station menu follows its bikes with the same Firestore query the notes use, so one listener serves both', () => {
+		expect(api).toMatch(/return subscribeFirestoreBikes\(Number\(stationId\), bikes => \{/);
+		expect(source('./vaimoo-api/firestore.ts')).toMatch(/subscribeToQuery<VaimooBike>\('bikes', \[where\('DockingStationId', '==', stationId\)\]/);
+	});
+
+	it('docks and free docks are the DockLimit and FreeDocks of the station feed, and bikes name their dock', () => {
+		expect(api).toMatch(/docks: Math\.max\(0, Math\.trunc\(station\.DockLimit\)\)/);
+		expect(api).toMatch(/freeDocks: Math\.max\(0, Math\.trunc\(station\.FreeDocks\)\)/);
+		expect(source('./vaimoo-api/types.ts')).toMatch(/DockingPointVisualId\?: string \| null;/);
+		expect(source('./components/StationMenu.svelte')).toMatch(/let freeDocks = \$derived\(withDockNotes\(station, \$openStationDockNotes\)\);/);
+	});
+});
+
 describe('the map hold acts while the finger is down (the map hold of Gira+ acts on release)', () => {
 	const map = source('./components/Map.svelte');
 

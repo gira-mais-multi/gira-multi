@@ -13,6 +13,7 @@
 	// (or a pick needs confirming), shows the "saved" notice, and ends choosing a place after a long time in the background.
 	import FavouriteSheet from '$lib/components/FavouriteSheet.svelte';
 	import PickReminder from '$lib/components/PickReminder.svelte';
+	import DockNotesHost from '$lib/components/DockNotesHost.svelte';
 	import { selectedStation } from '$lib/map.svelte';
 	import { currentRoute } from '$lib/routing';
 	import { currentTrip } from '$lib/trip';
@@ -109,3 +110,5 @@
 {/if}
 
 <PickReminder top={below} />
+<!-- The station menu's dock notes, kept here so Gira+'s page needs no other hook -->
+<DockNotesHost />

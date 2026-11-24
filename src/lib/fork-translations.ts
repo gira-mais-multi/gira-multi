@@ -329,4 +329,28 @@ export const forkTranslations = {
 		en: '1 tap away from opening the tasca.',
 		pt: 'Falta 1 toque para abrir a tasca.',
 	},
+	multi_dock_notes_title: {
+		en: 'Docks that work',
+		pt: 'Docas que funcionam',
+	},
+	multi_dock_notes_message: {
+		en: 'Red docks that still take a bike. While empty, they count as free docks in this station\'s menu.',
+		pt: 'Docas vermelhas que aceitam a bicicleta. Enquanto estiverem vazias, contam como docas livres no menu desta estação.',
+	},
+	multi_dock_notes_placeholder: {
+		en: 'Dock number',
+		pt: 'Número da doca',
+	},
+	multi_dock_notes_add: {
+		en: 'Add',
+		pt: 'Adicionar',
+	},
+	multi_dock_notes_remove: {
+		en: 'Remove dock {{dock}}',
+		pt: 'Remover a doca {{dock}}',
+	},
+	multi_dock_notes_done: {
+		en: 'Done',
+		pt: 'Concluído',
+	},
 } as const;

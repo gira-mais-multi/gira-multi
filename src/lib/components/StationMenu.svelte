@@ -13,7 +13,7 @@
 	import { safeInsets } from '$lib/ui.svelte';
 	import { distanceBetweenCoords, formatDistance } from '$lib/utils';
 	import IncomingBike from '$lib/components/IncomingBike.svelte';
-	import FavouriteCaption from '$lib/components/FavouriteCaption.svelte'; import { stationHold } from '$lib/station-hold'; // Gira+ Multi
+	import FavouriteCaption from '$lib/components/FavouriteCaption.svelte'; import { stationHold } from '$lib/station-hold'; import { dockNotesHold, openStationDockNotes, withDockNotes } from '$lib/dock-notes'; // Gira+ Multi
 	import { onMount, tick } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
 	import { Tween } from 'svelte/motion';
@@ -51,7 +51,7 @@
 	let code = $derived(nameParts[0] ?? '');
 	let name = $derived(nameParts[1] ?? '');
 	let bikes = $derived(station?.bikes ?? 0);
-	let freeDocks = $derived(station?.freeDocks ?? 0);
+	let freeDocks = $derived(withDockNotes(station, $openStationDockNotes)); // Gira+ Multi: plus the noted docks that are empty
 	let distance = $derived.by(() => {
 		if ($currentPos && station) {
 			return distanceBetweenCoords(station.latitude, station.longitude, $currentPos.coords.latitude, $currentPos.coords.longitude);
@@ -300,7 +300,7 @@
 				<span class="font-bold text-2xl leading-none">{bikes}</span>
 				<span class="font-bold text-[7px] leading-none">{$t('bikes_label')}</span>
 			</div>
-			<div class="flex flex-col items-center text-info">
+			<div class="flex flex-col items-center text-info" use:dockNotesHold={station}><!-- Gira+ Multi: hold for dock notes -->
 				<span class="font-bold text-2xl leading-none">{freeDocks}</span>
 				<span class="font-bold text-[7px] text-center leading-none">{$t('free_docks_label')}</span>
 			</div>
