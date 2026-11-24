@@ -38,7 +38,7 @@
 <!-- hidden while the search is open: its list has its own "Choosing…" line -->
 {#if $pick && Icon && !keyboard.visible}
 	<div transition:fly={{ y: -12, duration: 200 }} role="status"
-		class="fixed z-[45] left-4 right-[76px] flex items-center gap-3 pl-4 pr-1 py-1.5 bg-background dark:bg-background-secondary rounded-2xl"
+		class="fixed z-[25] left-4 right-[76px] flex items-center gap-3 pl-4 pr-1 py-1.5 bg-background dark:bg-background-secondary rounded-2xl"
 		style:top="{top}px" style:box-shadow="0px 0px 20px 0px var(--color-shadow)">
 		<Icon class="text-primary shrink-0" size={20} stroke={2} />
 		<div class="min-w-0 grow leading-tight">

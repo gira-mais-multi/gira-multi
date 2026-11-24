@@ -19,9 +19,9 @@ function replan() {
 	routeDestination.set({ ...destination });
 }
 
-/** Starts choosing where the route starts. */
+/** Starts choosing where the route starts (not during a trip, which ends any plan). */
 export function chooseStart() {
-	pick.set({ kind: 'from' });
+	if (get(currentTrip) === null) pick.set({ kind: 'from' });
 }
 
 /** Back to the phone's position. True when a plan was on. */

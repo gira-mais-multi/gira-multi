@@ -34,7 +34,7 @@
 	import Favourites from '$lib/components/Favourites.svelte';
 	import FavouritePickLine from '$lib/components/FavouritePickLine.svelte';
 	import { favourites, holdToSave, pickPlaceholder, takePick, withoutFavourites } from '$lib/favourites';
-	import { hold } from '$lib/hold';
+	import { hold } from '$lib/hold'; import { chooseStart } from '$lib/plan';
 
 	interface Props {
 		/** Collapse into a round search button until tapped (landscape trips,
@@ -331,7 +331,7 @@
 							{:else if lastRoute}
 								<!-- during a trip the TripStatus HUD already shows this information -->
 								{@const route = lastRoute}
-								<div class="flex items-center gap-1 h-10 px-4 text-info text-sm font-semibold">
+								<div class="flex items-center gap-1 h-10 px-4 text-info text-sm font-semibold" use:hold={() => { chooseStart(); focusSearchBar(''); }}><!-- Gira+ Multi: hold to plan from elsewhere -->
 									{#each route.legs as leg, i}
 										{#if i > 0}
 											<IconChevronRight class="text-label shrink-0" size="14" stroke="2.5" />

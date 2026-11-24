@@ -349,14 +349,6 @@ export const forkTranslations = {
 		en: 'Remove dock {{dock}}',
 		pt: 'Remover a doca {{dock}}',
 	},
-	multi_plan_from_here: {
-		en: 'From your location',
-		pt: 'Da sua localização',
-	},
-	multi_plan_change: {
-		en: 'Change',
-		pt: 'Alterar',
-	},
 	multi_plan_from: {
 		en: 'From {{name}}',
 		pt: 'De {{name}}',
