@@ -6,11 +6,13 @@
 	import { t } from '$lib/translations';
 	import IconPlus from '@tabler/icons-svelte/icons/plus';
 	import IconReplace from '@tabler/icons-svelte/icons/replace';
+	import IconRoute from '@tabler/icons-svelte/icons/route';
 
-	const Icon = $derived(!$pick ? null : $pick.kind === 'add' ? IconPlus : $pick.kind === 'move' ? IconReplace : SLOT_ICONS[$pick.kind]);
+	const Icon = $derived(!$pick ? null : $pick.kind === 'add' ? IconPlus : $pick.kind === 'move' ? IconReplace : $pick.kind === 'from' ? IconRoute : SLOT_ICONS[$pick.kind]);
 	const text = $derived.by(() => {
 		if (!$pick) return '';
 		if ($pick.kind === 'add') return $t('multi_fav_picking_add');
+		if ($pick.kind === 'from') return $t('multi_plan_picking');
 		if ($pick.kind === 'move') return $t('multi_fav_replace_placeholder', { name: $favouriteLabel($pick.favourite) });
 		return $t('multi_fav_picking', { name: $t($pick.kind === 'home' ? 'multi_fav_home' : 'multi_fav_work') });
 	});

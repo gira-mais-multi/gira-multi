@@ -9,10 +9,10 @@
 		return dismiss?.() ?? false;
 	}
 
-	// Gira+ Multi: opened to pick a place for a favourite
-	let focus: (() => void)|null = null;
-	export function focusSearchBar() {
-		focus?.();
+	// Gira+ Multi: opened to pick a place for a favourite or Plan mode's start, optionally with this text instead
+	let focus: ((text?: string, open?: boolean) => void)|null = null;
+	export function focusSearchBar(text?: string, open = true) {
+		focus?.(text, open);
 	}
 </script>
 
@@ -57,7 +57,7 @@
 		expanded = true;
 		input?.focus();
 	}
-	focus = expand;
+	focus = (text, open) => { if (text !== undefined) { query = text; results = null; stationResults = []; } if (open) expand(); };
 	const recents = $derived(withoutFavourites($searchHistory, $favourites));
 	const showingHistory = $derived(focused && query.trim().length < 2); // Gira+ Multi: the favourites row always shows
 	const showingResults = $derived(focused && (results != null || stationResults.length > 0 || showingHistory));

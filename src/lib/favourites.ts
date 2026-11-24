@@ -5,6 +5,7 @@ import { derived, get, writable } from 'svelte/store';
 import type { SearchHistoryEntry } from './search-history';
 import { reverseGeocode } from './geocoding';
 import { t } from './translations';
+import { planFrom } from './plan-origin';
 
 const STORAGE_KEY = 'multiFavourites';
 /** The empty Home and Work slots the rider hid by holding them. */
@@ -231,13 +232,14 @@ export const favouriteLabel = derived(t, text => (f: Favourite) => f.kind === 'h
  * the map, or a spot held on the map (map-pick.ts); none of these starts a route while choosing. It lasts until a
  * pick, the reminder's X or Cancel, the back button, or a long time in the background (FavouritesHost).
  */
-export type Pick = { kind: SlotKind | 'add' } | { kind: 'move', favourite: Favourite };
+export type Pick = { kind: SlotKind | 'add' } | { kind: 'move', favourite: Favourite } | { kind: 'from' };
 export const pick = writable<Pick | null>(null);
 
 /** The search bar's placeholder while picking, else null. */
 export const pickPlaceholder = derived([pick, favouriteLabel, t], ([current, label, text]) => {
 	if (!current) return null;
 	if (current.kind === 'add') return text('multi_fav_pick_add_placeholder');
+	if (current.kind === 'from') return text('multi_plan_pick_placeholder');
 	const name = current.kind === 'move' ? label(current.favourite) : text(current.kind === 'home' ? 'multi_fav_home' : 'multi_fav_work');
 	return text('multi_fav_replace_placeholder', { name });
 });
@@ -277,6 +279,8 @@ export function confirmSaved(notice: SavedNotice) {
 }
 
 function finishPick(current: Pick, destination: SearchHistoryEntry) {
+	// Plan mode's starting point (plan.ts) is picked the same way, and saves nothing
+	if (current.kind === 'from') return planFrom.set(destination);
 	return choosePicked(current, destination).then(saved => {
 		if (saved) confirmSaved(current.kind === 'move' ? { moved: current.favourite } : { kind: current.kind as SlotKind });
 	});

@@ -8,6 +8,7 @@ import { distanceBetweenCoords } from '$lib/utils';
 import { errorMessages } from '$lib/ui.svelte';
 import { t } from '$lib/translations';
 import { osrmRoute, osrmTable, type Coord, type OsrmRoute } from '$lib/osrm';
+import { planning, withPlanOrigin } from '$lib/plan-origin'; // Gira+ Multi: Plan mode
 
 export type { Coord } from '$lib/osrm';
 export type LocationDestination = Coord & {
@@ -261,7 +262,7 @@ async function recomputeRoute() {
 		if (!sameRoutingDestination(computing, destination)) recomputeQueued = true;
 		return;
 	}
-	const pos = get(currentPos);
+	const pos = withPlanOrigin(get(currentPos)); // Gira+ Multi: a plan's own starting point
 	if (!pos) return;
 	computing = destination;
 	routePending.set(true);
@@ -370,7 +371,7 @@ token.subscribe(session => {
 });
 
 currentPos.subscribe(pos => {
-	if (!pos) return;
+	if (!pos || planning()) return; // Gira+ Multi: a plan from elsewhere ignores the phone's movement
 	const destination = get(routeDestination);
 	if (!destination) return;
 

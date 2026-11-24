@@ -5,7 +5,7 @@
 	// search; press and hold edits (or hides an empty slot).
 	import StationCard from '$lib/components/StationCard.svelte';
 	import FavouriteIcon, { SLOT_ICONS, SLOT_ICONS_FILLED } from '$lib/components/FavouriteIcon.svelte';
-	import { emptySlots, favouriteLabel, favouriteMenu, hideSlot, pick, sortedFavourites, type Favourite, type SlotKind } from '$lib/favourites';
+	import { emptySlots, favouriteLabel, favouriteMenu, hideSlot, pick, sortedFavourites, takePick, type Favourite, type SlotKind } from '$lib/favourites';
 	import { hold } from '$lib/hold';
 	import { dismissSearchBar, focusSearchBar } from '$lib/components/SearchBar.svelte';
 	import { selectedStation, stations } from '$lib/map.svelte';
@@ -30,6 +30,7 @@
 	 */
 	function go(favourite: Favourite) {
 		const destination = favourite.destination;
+		if (takePick(destination)) return dismissSearchBar(); // choosing Plan mode's starting point
 		const station = destination.type === 'station' && stations.value.find(s => s.serialNumber === destination.stationSerial && s.assetStatus === 'active');
 		selectedStation.set(station ? station.serialNumber : null);
 		if (station) routeDestination.set({ type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber });
@@ -67,7 +68,8 @@
 	const keepFocus = (event: MouseEvent) => event.preventDefault();
 </script>
 
-{#if !$pick}
+<!-- While choosing where a plan starts, the saved places can be it; Home, Work and Add can't be set meanwhile -->
+{#if !$pick || $pick.kind === 'from'}
 	<div bind:this={row} onscroll={measure} class="flex overflow-x-auto px-2.5 pt-1 pb-3 snap-x snap-proximity overscroll-x-contain"
 		style:scrollbar-width="none" style:mask-image={more ? fade : undefined} style:-webkit-mask-image={more ? fade : undefined}>
 		{#each $sortedFavourites as favourite (favourite.id)}
@@ -91,7 +93,7 @@
 				</span>
 			</button>
 		{/each}
-		{#each $emptySlots as kind (kind)}
+		{#each $pick ? [] : $emptySlots as kind (kind)}
 			{@const Icon = SLOT_ICONS[kind]}
 			<button class="group shrink-0 flex flex-col items-center w-[60px] snap-start" onmousedown={keepFocus} onclick={() => startPick(kind)}
 				use:hold={{ onHold: () => hideSlot(kind), press: false }} aria-label={$t(kind === 'home' ? 'multi_fav_home' : 'multi_fav_work')}>
@@ -104,12 +106,14 @@
 				<span class="{label} text-label"><span class="truncate">{$t(kind === 'home' ? 'multi_fav_home' : 'multi_fav_work')}</span></span>
 			</button>
 		{/each}
-		<button class="group shrink-0 flex flex-col items-center w-[60px] snap-start" onmousedown={keepFocus} onclick={() => startPick('add')}>
-			<span class="flex items-center justify-center w-12 h-12 rounded-full text-label shadow-[inset_0_0_0_1.5px_var(--color-background-tertiary)] {press}">
-				<IconPlus size={22} stroke={2} />
-			</span>
-			<span class="{label} text-label"><span class="truncate">{$t('multi_fav_add')}</span></span>
-		</button>
+		{#if !$pick}
+			<button class="group shrink-0 flex flex-col items-center w-[60px] snap-start" onmousedown={keepFocus} onclick={() => startPick('add')}>
+				<span class="flex items-center justify-center w-12 h-12 rounded-full text-label shadow-[inset_0_0_0_1.5px_var(--color-background-tertiary)] {press}">
+					<IconPlus size={22} stroke={2} />
+				</span>
+				<span class="{label} text-label"><span class="truncate">{$t('multi_fav_add')}</span></span>
+			</button>
+		{/if}
 	</div>
 	{#if recents}
 		<div class="mx-4 mb-1.5 border-t border-background-tertiary"></div>

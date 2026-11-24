@@ -5,7 +5,11 @@
 // route. Called from one-line hooks in Gira+'s Map.svelte.
 import { favouriteNotice, favouriteSheetOpen, pickBusy, pickNudge, takeMapSpot, takePick } from './favourites';
 import { HOLD_MS, MOVE_TOLERANCE_PX, swallowReleaseClick } from './hold';
+import { reverseGeocode } from './geocoding';
 import { selectedStation, stations } from './map.svelte';
+import { planning } from './plan-origin';
+import { routeDestination } from './routing';
+import { t } from './translations';
 import type maplibregl from 'maplibre-gl';
 import { get } from 'svelte/store';
 
@@ -98,9 +102,23 @@ function dropDestination(map: maplibregl.Map, event: PointerEvent, stationLayers
 	const point: [number, number] = [event.clientX - rect.left, event.clientY - rect.top];
 	if (map.queryRenderedFeatures(point, { layers: stationLayers }).length > 0) return true;
 	const at = map.unproject(point);
-	dropPin(at);
+	if (planning()) planDestination(at);
+	else dropPin(at);
 	showPin(map, at.lng, at.lat, PIN_HANDOVER_MS);
 	return true;
+}
+
+/**
+ * In Plan mode the held spot is set as the destination directly: Gira+'s pin drop would show a route it worked out
+ * from the phone's position meanwhile. Named as Gira+ names its pins.
+ */
+function planDestination({ lat, lng }: { lat: number, lng: number }) {
+	const destination = { type: 'location' as const, lat, lng };
+	routeDestination.set(destination);
+	void reverseGeocode(destination).then(name => {
+		const current = get(routeDestination);
+		if (current && current.lat === lat && current.lng === lng) routeDestination.set({ ...destination, name: name ?? get(t)('selected_location') });
+	});
 }
 
 // The held spot gets Gira+'s destination pin, so it's clear what was picked: it stays while the sheet for naming it

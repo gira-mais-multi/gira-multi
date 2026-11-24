@@ -91,6 +91,19 @@ describe('Gira+ opens with the login the fork points it at (Main account, a trip
 	});
 });
 
+describe('Plan mode steers the route planner of Gira+ through two hooks', () => {
+	const routing = source('./routing.ts');
+
+	it('the planner reads its origin through the plan, and the phone moving is ignored while planning', () => {
+		expect(routing).toMatch(/const pos = withPlanOrigin\(get\(currentPos\)\);[^\n]*\n\tif \(!pos\) return;[\s\S]*?const origin = \{ lat: pos\.coords\.latitude, lng: pos\.coords\.longitude \};/);
+		expect(routing).toMatch(/currentPos\.subscribe\(pos => \{\n\tif \(!pos \|\| planning\(\)\) return;/);
+	});
+
+	it('a destination with no route is planned again (how the plan re-plans from a new start)', () => {
+		expect(routing).toMatch(/routeDestination\.subscribe\(destination => \{[\s\S]*?const route = get\(currentRoute\);\n\tif \(route && sameRoutingDestination\(route\.destination, destination\)\) \{[\s\S]*?\}\n\trecomputeRoute\(\);/);
+	});
+});
+
 describe('pasted places go through the search of Gira+', () => {
 	it('the search bar asks the fork, which wraps the geocoder of Gira+ (same signature)', () => {
 		expect(source('./components/SearchBar.svelte')).toMatch(/import \{ searchLocations \} from '\$lib\/pasted-place';/);

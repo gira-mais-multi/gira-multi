@@ -8,15 +8,17 @@
 	import { keyboard } from '$lib/ui.svelte';
 	import IconPlus from '@tabler/icons-svelte/icons/plus';
 	import IconReplace from '@tabler/icons-svelte/icons/replace';
+	import IconRoute from '@tabler/icons-svelte/icons/route';
 	import IconX from '@tabler/icons-svelte/icons/x';
 	import { fly } from 'svelte/transition';
 
 	let { top }: { top: number } = $props();
 
-	const Icon = $derived(!$pick ? null : $pick.kind === 'add' ? IconPlus : $pick.kind === 'move' ? IconReplace : SLOT_ICONS[$pick.kind]);
+	const Icon = $derived(!$pick ? null : $pick.kind === 'add' ? IconPlus : $pick.kind === 'move' ? IconReplace : $pick.kind === 'from' ? IconRoute : SLOT_ICONS[$pick.kind]);
 	const title = $derived.by(() => {
 		if (!$pick) return '';
 		if ($pick.kind === 'add') return $t('multi_fav_picking_add');
+		if ($pick.kind === 'from') return $t('multi_plan_picking');
 		if ($pick.kind === 'move') return $t('multi_fav_replace_placeholder', { name: $favouriteLabel($pick.favourite) });
 		return $t('multi_fav_picking', { name: $t($pick.kind === 'home' ? 'multi_fav_home' : 'multi_fav_work') });
 	});

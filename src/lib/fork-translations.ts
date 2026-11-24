@@ -349,6 +349,34 @@ export const forkTranslations = {
 		en: 'Remove dock {{dock}}',
 		pt: 'Remover a doca {{dock}}',
 	},
+	multi_plan_from_here: {
+		en: 'From your location',
+		pt: 'Da sua localização',
+	},
+	multi_plan_change: {
+		en: 'Change',
+		pt: 'Alterar',
+	},
+	multi_plan_from: {
+		en: 'From {{name}}',
+		pt: 'De {{name}}',
+	},
+	multi_plan_live: {
+		en: 'Bikes and free docks as of {{time}}',
+		pt: 'Bicicletas e docas livres às {{time}}',
+	},
+	multi_plan_back: {
+		en: 'Back to your location',
+		pt: 'Voltar à sua localização',
+	},
+	multi_plan_picking: {
+		en: 'Choosing where to start',
+		pt: 'A escolher o ponto de partida',
+	},
+	multi_plan_pick_placeholder: {
+		en: 'Search for the starting point',
+		pt: 'Pesquisar o ponto de partida',
+	},
 	multi_dock_notes_done: {
 		en: 'Done',
 		pt: 'Concluído',

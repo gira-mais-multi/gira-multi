@@ -14,6 +14,7 @@
 	import FavouriteSheet from '$lib/components/FavouriteSheet.svelte';
 	import PickReminder from '$lib/components/PickReminder.svelte';
 	import DockNotesHost from '$lib/components/DockNotesHost.svelte';
+	import PlanBar from '$lib/components/PlanBar.svelte';
 	import { selectedStation } from '$lib/map.svelte';
 	import { currentRoute } from '$lib/routing';
 	import { currentTrip } from '$lib/trip';
@@ -110,5 +111,6 @@
 {/if}
 
 <PickReminder top={below} />
+<PlanBar top={below} />
 <!-- The station menu's dock notes, kept here so Gira+'s page needs no other hook -->
 <DockNotesHost />
