@@ -22,9 +22,12 @@ Descarregue o APK em [Releases](../../releases), ou adicione o endereço deste r
 - Marcação de viagens falsas no histórico
 - Favoritos no topo da pesquisa: Casa, Trabalho, estações e outros locais
 - Rascunho de email para a EMEL com os dados da viagem
+- Pesquisa que aceita coordenadas, plus codes e links do Google Maps
+- Planear um percurso a partir de outro local
+- Docas vermelhas que funcionam, contadas como livres no menu da estação
 - Atualizada a cada nova versão da Gira+
 
-*Several accounts in one app, without logging out · Account switching from the profile and the map · A main account, opened when the app starts · A mark on accounts without a valid pass, with a negative balance or with a trip running · Trip-end confirmation when the bike is docked, with a warning if the trip doesn't end · A log of each trip, kept only on the phone · The cost of paid trips in the history, with a "Paid only" filter · False trip marks in the history · Favourites at the top of the search: Home, Work, stations and other places · An email draft to EMEL with the trip's details · Updated with every new Gira+ release*
+*Several accounts in one app, without logging out · Account switching from the profile and the map · A main account, opened when the app starts · A mark on accounts without a valid pass, with a negative balance or with a trip running · Trip-end confirmation when the bike is docked, with a warning if the trip doesn't end · A log of each trip, kept only on the phone · The cost of paid trips in the history, with a "Paid only" filter · False trip marks in the history · Favourites at the top of the search: Home, Work, stations and other places · An email draft to EMEL with the trip's details · A search that takes coordinates, plus codes and Google Maps links · Planning a route from somewhere else · Red docks that work, counted as free in the station's menu · Updated with every new Gira+ release*
 
 ## Como usar / How to use
 
@@ -34,8 +37,12 @@ Descarregue o APK em [Releases](../../releases), ou adicione o endereço deste r
 - **Remover uma conta:** no perfil dessa conta, toque em "Sair".
 - **Marcar uma viagem falsa ou escrever à EMEL:** no histórico, mantenha premida a viagem.
 - **Guardar um favorito:** na pesquisa, mantenha premido um resultado, ou mantenha premido o nome de uma estação no seu menu. Para escolher um local no mapa, toque numa estação ou mantenha premido o mapa. Mantenha premido um favorito para o alterar.
+- **Pesquisar um local do Google Maps:** cole na pesquisa a morada, o plus code, as coordenadas ou o link partilhado.
+- **Planear a partir de outro local:** com um percurso no mapa, toque em "Alterar" por baixo da pesquisa e escolha o ponto de partida. Toque no X para voltar à sua localização.
+- **Anotar uma doca vermelha que funciona:** no menu da estação, mantenha premido o número de docas livres.
+- **Todas as pressões longas** duram 0,4 s e atuam com o dedo ainda no ecrã.
 
-*__Add an account:__ on the profile, swipe the top left to "New account" and tap "Sign in". __Switch accounts:__ on the profile, swipe the top sideways; on the map, swipe down on the profile button. __Choose the main account:__ on the profile, press and hold the top; do it again to turn it off. __Remove an account:__ on that account's profile, tap "Exit". __Mark a false trip or write to EMEL:__ in the history, press and hold the trip. __Save a favourite:__ in the search, press and hold a result, or press and hold a station's name in its menu; to choose a place on the map, tap a station or press and hold the map; press and hold a favourite to change it.*
+*__Add an account:__ on the profile, swipe the top left to "New account" and tap "Sign in". __Switch accounts:__ on the profile, swipe the top sideways; on the map, swipe down on the profile button. __Choose the main account:__ on the profile, press and hold the top; do it again to turn it off. __Remove an account:__ on that account's profile, tap "Exit". __Mark a false trip or write to EMEL:__ in the history, press and hold the trip. __Save a favourite:__ in the search, press and hold a result, or press and hold a station's name in its menu; to choose a place on the map, tap a station or press and hold the map; press and hold a favourite to change it. __Find a Google Maps place:__ paste the address, plus code, coordinates or shared link into the search. __Plan from somewhere else:__ with a route on the map, tap "Change" under the search and choose the starting point; tap the X to go back to your location. __Note a red dock that works:__ in the station's menu, press and hold the free docks number. __Every long press__ takes 0.4 s and acts with the finger still on the screen.*
 
 ## Antes de usar / Before you use it
 
