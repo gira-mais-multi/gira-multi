@@ -1,6 +1,6 @@
 // Gira+ Multi: a press-and-hold action. The click that ends a hold is swallowed wherever it lands, so holding an
 // element that also reacts to taps (an account row switches on tap) doesn't do both, and lifting the finger doesn't
-// press what the hold just opened under it (a sheet's "Home" row). While the finger rests on it, the element gets
+// press what the hold just opened under it (a sheet's "Home" row), nor take the focus from a search the hold opened. While the finger rests on it, the element gets
 // `data-holding` and, unless `press: false`, Gira+'s press colour. No buzz: Gira+ itself never vibrates.
 /** How long every hold in the app takes, the map's included (Gira+'s own map hold was 400 ms, acting on release). */
 export const HOLD_MS = 400;
@@ -21,6 +21,11 @@ export function swallowReleaseClick(lifted = false) {
 		event.stopImmediatePropagation();
 		stop();
 	};
+	// the mousedown a lifted finger sends first would move the focus (closing a search the hold opened)
+	const keepFocus = (event: MouseEvent) => {
+		event.preventDefault();
+		event.stopImmediatePropagation();
+	};
 	const released = () => {
 		clearTimeout(timer);
 		timer = setTimeout(stop, CLICK_WINDOW_MS);
@@ -28,10 +33,12 @@ export function swallowReleaseClick(lifted = false) {
 	const stop = () => {
 		clearTimeout(timer);
 		window.removeEventListener('click', swallow, true);
+		window.removeEventListener('mousedown', keepFocus, true);
 		window.removeEventListener('pointerup', released, true);
 		window.removeEventListener('touchend', released, true);
 	};
 	window.addEventListener('click', swallow, true);
+	window.addEventListener('mousedown', keepFocus, true);
 	window.addEventListener('pointerup', released, true);
 	window.addEventListener('touchend', released, true);
 	if (lifted) released();
