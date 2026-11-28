@@ -82,8 +82,9 @@ public class UpdatePlugin extends Plugin {
 			dir.mkdirs();
 			File part = new File(dir, FILE + ".part");
 			File done = new File(dir, FILE);
+			HttpURLConnection conn = null;
 			try {
-				HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+				conn = (HttpURLConnection) new URL(url).openConnection();
 				// GitHub serves the file from another https host; HttpURLConnection follows that itself
 				conn.setInstanceFollowRedirects(true);
 				conn.setConnectTimeout(15_000);
@@ -105,7 +106,6 @@ public class UpdatePlugin extends Plugin {
 						}
 					}
 				}
-				conn.disconnect();
 				if (total > 0 && received != total) throw new IllegalStateException("incomplete");
 				done.delete();
 				if (!part.renameTo(done)) throw new IllegalStateException("can't save");
@@ -117,6 +117,7 @@ public class UpdatePlugin extends Plugin {
 				part.delete();
 				call.reject(e.getMessage() != null ? e.getMessage() : "download failed");
 			} finally {
+				if (conn != null) conn.disconnect();
 				downloading = false;
 			}
 		}).start();

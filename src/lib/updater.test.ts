@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
 	openInstallSettings: vi.fn(async () => {}),
 	progress: null as null | ((p: { received: number, total: number }) => void),
 	resume: null as null | (() => void),
+	active: true,
+	stateChange: null as null | ((state: { isActive: boolean }) => void),
 }));
 
 vi.mock('@capacitor/core', () => ({
@@ -26,7 +28,12 @@ vi.mock('@capacitor/core', () => ({
 }));
 vi.mock('@capacitor/app', () => ({
 	App: {
-		addListener: (_: string, listener: () => void) => {
+		getState: async () => ({ isActive: mocks.active }),
+		addListener: (event: string, listener: (state?: { isActive: boolean }) => void) => {
+			if (event === 'appStateChange') {
+				mocks.stateChange = listener;
+				return Promise.resolve({ remove: async () => {} });
+			}
 			mocks.resume = listener;
 			return Promise.resolve({ remove: async () => {} });
 		},
@@ -42,6 +49,7 @@ beforeEach(() => {
 	localStorage.clear();
 	mocks.platform = 'android';
 	mocks.allowed = true;
+	mocks.active = true;
 	mocks.download.mockReset().mockResolvedValue({ size: 1 });
 	mocks.install.mockReset().mockResolvedValue(undefined);
 	mocks.openInstallSettings.mockClear();
@@ -144,6 +152,24 @@ describe('Update', () => {
 		finish({ size: 1 });
 		await pressed;
 		expect(mocks.install).not.toHaveBeenCalled();
+	});
+
+	it('a quick second tap starts no second download', async () => {
+		rememberRelease(release);
+		await Promise.all([pressUpdate(), pressUpdate()]);
+		expect(mocks.download).toHaveBeenCalledOnce();
+		expect(get(updateStep)).toBe('offer');
+	});
+
+	it('waits for the app to be back in front before opening the installer', async () => {
+		rememberRelease(release);
+		mocks.active = false;
+		const pressed = pressUpdate();
+		await vi.waitFor(() => expect(mocks.stateChange).not.toBeNull());
+		expect(mocks.install).not.toHaveBeenCalled();
+		mocks.stateChange?.({ isActive: true });
+		await pressed;
+		expect(mocks.install).toHaveBeenCalledOnce();
 	});
 
 	it('ignores presses while downloading', async () => {

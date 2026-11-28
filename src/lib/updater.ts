@@ -90,12 +90,19 @@ async function canInstall() {
  * The Update button. The first time, Android needs "Allow from this source" for the app: the popup says so and the
  * button opens that setting instead; back in the app, Update is offered again.
  */
+let busy = false;
+
 export async function pressUpdate() {
-	const step = get(updateStep);
-	if (step === 'downloading') return;
-	if (step === 'permission') return openPermission();
-	if (!await canInstall()) return updateStep.set('permission');
-	await download();
+	// A second tap while the first is still asking Android would start a second download, which fails
+	if (busy || get(updateStep) === 'downloading') return;
+	busy = true;
+	try {
+		if (get(updateStep) === 'permission') return await openPermission();
+		if (!await canInstall()) return updateStep.set('permission');
+		await download();
+	} finally {
+		busy = false;
+	}
 }
 
 async function openPermission() {
@@ -114,22 +121,36 @@ async function openPermission() {
 	if (await canInstall()) updateStep.set('offer');
 }
 
+/** Android won't open the installer over another app: if the person left during the download, wait for them. */
+async function inFront() {
+	if ((await App.getState()).isActive) return;
+	await new Promise<void>(resolve => {
+		const handle = App.addListener('appStateChange', ({ isActive }) => {
+			if (!isActive) return;
+			void handle.then(h => h.remove());
+			resolve();
+		});
+	});
+}
+
 async function download() {
 	const url = get(updateApk);
 	if (!url) return updateStep.set('failed');
 	updateStep.set('downloading');
 	updateProgress.set(null);
-	const listener = await plugin.addListener('progress', ({ received, total }) => {
-		updateProgress.set(total > 0 ? Math.min(1, received / total) : null);
-	});
+	let listener: PluginListenerHandle | undefined;
 	try {
+		listener = await plugin.addListener('progress', ({ received, total }) => {
+			updateProgress.set(total > 0 ? Math.min(1, received / total) : null);
+		});
 		await plugin.download({ url });
+		await inFront();
 		if (!popupOpen) return updateStep.set('offer');
 		await plugin.install();
 		updateStep.set('offer');
 	} catch {
 		updateStep.set('failed');
 	} finally {
-		void listener.remove();
+		void listener?.remove();
 	}
 }

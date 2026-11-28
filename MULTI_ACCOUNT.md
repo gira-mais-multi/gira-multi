@@ -6,9 +6,9 @@ Versão modificada e não oficial do [Gira+](https://github.com/rt-evil-inc/gira
 
 ## Instalar / Install
 
-Descarregue o APK em [Releases](../../releases), ou adicione o endereço deste repositório ao [Obtainium](https://github.com/ImranR98/Obtainium) para receber atualizações. Cada versão é a última versão do Gira+ com estas alterações.
+Descarregue o APK em [Releases](../../releases), ou adicione o endereço deste repositório ao [Obtainium](https://github.com/ImranR98/Obtainium) para receber atualizações. A partir da 1.7.1.10, a aplicação também se atualiza sozinha: quando sai uma versão nova, o aviso tem um botão Atualizar (o Android pede autorização da primeira vez). Cada versão é a última versão do Gira+ com estas alterações.
 
-*Download the APK from [Releases](../../releases), or add this repository's address to [Obtainium](https://github.com/ImranR98/Obtainium) to get updates. Each release is the latest Gira+ release with these changes.*
+*Download the APK from [Releases](../../releases), or add this repository's address to [Obtainium](https://github.com/ImranR98/Obtainium) to get updates. From 1.7.1.10 the app also updates itself: when a new release is out, its notice has an Update button (Android asks for permission the first time). Each release is the latest Gira+ release with these changes.*
 
 ## Funcionalidades extra / Extra features
 
