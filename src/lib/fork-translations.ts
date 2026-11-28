@@ -353,6 +353,10 @@ export const forkTranslations = {
 		en: 'From {{name}}',
 		pt: 'De {{name}}',
 	},
+	multi_resume_route: {
+		en: 'Resume route',
+		pt: 'Retomar rota',
+	},
 	multi_plan_live: {
 		en: 'Bikes and free docks as of {{time}}',
 		pt: 'Bicicletas e docas livres às {{time}}',

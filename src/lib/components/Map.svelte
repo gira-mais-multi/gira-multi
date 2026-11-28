@@ -27,7 +27,7 @@
 	import maplibregl, { type ExpressionSpecification } from 'maplibre-gl';
 	import { onMount, tick, untrack } from 'svelte';
 	import { get } from 'svelte/store';
-	import { holdForDestination, pickHold, pickStation, pickTap, watchMapHold } from '$lib/map-pick'; // Gira+ Multi
+	import { holdForDestination, pickHold, pickStation, pickTap, tapKeepsRoute, watchMapHold } from '$lib/map-pick'; // Gira+ Multi
 	import { fade } from 'svelte/transition';
 
 	interface Props {
@@ -346,7 +346,7 @@
 				route.endStationSerial === props.serialNumber ||
 				(route.destination.type === 'station' && route.destination.stationSerial === props.serialNumber)
 			);
-			if (!partOfRoute) {
+			if (!partOfRoute && !tapKeepsRoute()) { // Gira+ Multi: with a route showing, a tap only opens the station
 				// The route to a tapped station is drawn without reframing the map:
 				// the user is looking at that station (often just to check its
 				// bikes), and zooming out to the whole route pulled them away from

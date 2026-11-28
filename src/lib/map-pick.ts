@@ -2,13 +2,15 @@
 // trip), so a stray tap never drops a pin. A hold acts after HOLD_MS with the finger still down, like every other hold
 // in the app (Gira+'s acted only once the finger lifted). While choosing a favourite's place, holding a spot picks it,
 // tapping a station picks the station, and a tap on an empty spot only nudges the reminder; none of them starts a
-// route. Called from one-line hooks in Gira+'s Map.svelte.
+// route. With a route showing outside a trip, tapping a station only opens it (the route stays), and holding a station
+// makes it the destination. Called from one-line hooks in Gira+'s Map.svelte.
 import { favouriteNotice, favouriteSheetOpen, pickBusy, pickNudge, takeMapSpot, takePick } from './favourites';
 import { HOLD_MS, MOVE_TOLERANCE_PX, swallowReleaseClick } from './hold';
 import { reverseGeocode } from './geocoding';
 import { selectedStation, stations } from './map.svelte';
 import { planning } from './plan-origin';
 import { routeDestination } from './routing';
+import { currentTrip } from './trip';
 import { t } from './translations';
 import type maplibregl from 'maplibre-gl';
 import { get } from 'svelte/store';
@@ -16,6 +18,14 @@ import { get } from 'svelte/store';
 /** A tap on an empty spot drops no destination pin, outside trips as well as during them: that takes a hold. */
 export function holdForDestination(): boolean {
 	return true;
+}
+
+/**
+ * With a destination set outside a trip, a tapped station only opens its menu: Gira+ would replace the route with one
+ * to that station, so checking a station on the way lost the route. Holding the station makes it the destination.
+ */
+export function tapKeepsRoute(): boolean {
+	return get(currentTrip) === null && get(routeDestination) !== null;
 }
 
 /** How soon after a quick tap a press may be the second half of MapLibre's tap-then-drag zoom, which isn't a hold. */
@@ -97,14 +107,28 @@ export function pickHold(map: maplibregl.Map, event: PointerEvent, stationLayers
  * drop waits out its double-tap window before showing the route, so the pin shows at once here and hands over to it.
  */
 function dropDestination(map: maplibregl.Map, event: PointerEvent, stationLayers: string[], dropPin: (at: { lat: number, lng: number }) => void) {
-	if (get(selectedStation) != null) return true;
 	const rect = map.getCanvasContainer().getBoundingClientRect();
 	const point: [number, number] = [event.clientX - rect.left, event.clientY - rect.top];
-	if (map.queryRenderedFeatures(point, { layers: stationLayers }).length > 0) return true;
+	const held = map.queryRenderedFeatures(point, { layers: stationLayers })[0];
+	if (held) return goToStation((held.properties as { serialNumber?: string }).serialNumber);
+	if (get(selectedStation) != null) return true;
 	const at = map.unproject(point);
 	if (planning()) planDestination(at);
 	else dropPin(at);
 	showPin(map, at.lng, at.lat, PIN_HANDOVER_MS);
+	return true;
+}
+
+/**
+ * A held station becomes the destination and opens, as Gira+'s tap does without a route; also over an open station
+ * menu, so a station opened with a tap can be held next. In Plan mode the start stays.
+ */
+function goToStation(serial: string | undefined) {
+	const station = stations.value.find(candidate => candidate.serialNumber === serial);
+	if (!station) return true;
+	swallowReleaseClick(); // the release's click would reach the station as a tap
+	selectedStation.set(station.serialNumber);
+	routeDestination.set({ type: 'station', lat: station.latitude, lng: station.longitude, name: station.name, stationSerial: station.serialNumber });
 	return true;
 }
 

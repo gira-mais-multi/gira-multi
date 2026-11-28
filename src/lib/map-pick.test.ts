@@ -2,7 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { favourites, favouriteSheetOpen, pick, resetFavouritesForTest } from '$lib/favourites';
 import { stations, type StationInfo } from '$lib/map.svelte';
-import { AFTER_TAP_MS, PIN_AFTER_SAVE_MS, pickHold, pickStation, pickTap, watchMapHold } from '$lib/map-pick';
+import { AFTER_TAP_MS, PIN_AFTER_SAVE_MS, pickHold, pickStation, pickTap, tapKeepsRoute, watchMapHold } from '$lib/map-pick';
+import { selectedStation } from '$lib/map.svelte';
+import { routeDestination } from '$lib/routing';
 import { HOLD_MS } from '$lib/hold';
 import { currentTrip, type ActiveTrip } from '$lib/trip';
 import type maplibregl from 'maplibre-gl';
@@ -51,7 +53,7 @@ describe('choosing a favourite\'s place on the map', () => {
 		}
 	});
 
-	it('a hold on an empty spot sets the destination there, in a trip or not; on a station it leaves the tap to it', () => {
+	it('a hold on an empty spot sets the destination there, in a trip or not; on a station it goes there and opens it', () => {
 		vi.useFakeTimers({ now: Date.now() + 60_000 });
 		try {
 			let onStation = false;
@@ -72,6 +74,17 @@ describe('choosing a favourite\'s place on the map', () => {
 			onStation = true;
 			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(true);
 			expect(dropped).toHaveLength(1);
+			expect(get(selectedStation)).toBe('sodre');
+			expect(get(routeDestination)).toMatchObject({ type: 'station', stationSerial: 'sodre', name: '481 - Cais do Sodré' });
+			// an open station menu doesn't stop a hold on a station, but still stops one on an empty spot
+			routeDestination.set(null);
+			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(true);
+			expect(get(routeDestination)?.name).toBe('481 - Cais do Sodré');
+			onStation = false;
+			expect(pickHold(map, hold, ['points'], at => dropped.push(at))).toBe(true);
+			expect(dropped).toHaveLength(1);
+			selectedStation.set(null);
+			routeDestination.set(null);
 
 			onStation = false;
 			currentTrip.set({} as ActiveTrip);
@@ -83,8 +96,20 @@ describe('choosing a favourite\'s place on the map', () => {
 			expect(dropped).toHaveLength(2);
 		} finally {
 			currentTrip.set(null);
+			selectedStation.set(null);
+			routeDestination.set(null);
 			vi.useRealTimers();
 		}
+	});
+
+	it('with a destination set outside a trip, a station tap keeps the route', () => {
+		expect(tapKeepsRoute()).toBe(false);
+		routeDestination.set({ type: 'location', lat: 38.7, lng: -9.1, name: 'Somewhere' });
+		expect(tapKeepsRoute()).toBe(true);
+		currentTrip.set({} as ActiveTrip); // during a trip Gira+'s tap still re-routes
+		expect(tapKeepsRoute()).toBe(false);
+		currentTrip.set(null);
+		routeDestination.set(null);
 	});
 
 	it('the held spot keeps its pin while the sheet for naming it is open, and loses it soon after it closes', () => {

@@ -38,6 +38,7 @@
 	import DockCheck from '$lib/components/DockCheck.svelte';
 	import { dockCheck } from '$lib/dock-check';
 	import { closeAccountMenu } from '$lib/account-menu';
+	import { tripBack } from '$lib/trip-guard';
 
 	let backListener: PluginListenerHandle;
 	let innerHeight = $state(0);
@@ -82,6 +83,7 @@
 				// just unfocus the search bar
 				} else if ($selectedStation != null) {
 					$selectedStation = null;
+				} else if (tripBack()) { // Gira+ Multi: during a trip, back neither clears the directions nor closes the app
 				} else if (get(routeDestination) != null) {
 					routeDestination.set(null);
 				} else {
