@@ -10,6 +10,8 @@
 	import { version } from '$app/environment';
 	import X from '@tabler/icons-svelte/icons/x';
 	import { compareVersions, LATEST_RELEASE_API_URL, RELEASES_URL } from '$lib/fork';
+	import { installedVersion, offersUpdates, rememberRelease } from '$lib/updater'; // Gira+ Multi: installs updates
+	import UpdateInstall from '$lib/components/UpdateInstall.svelte'; // Gira+ Multi
 
 	let message = $state('');
 	let messageTimestamp = $state('');
@@ -27,7 +29,7 @@
 
 			// The setting defaults to on and is only persisted once toggled, so read
 			// the loaded settings rather than the raw preference
-			if (get(appSettings)?.updateWarning) {
+			if (get(appSettings)?.updateWarning && offersUpdates(version)) { // Gira+ Multi: not in a test copy
 				httpRequestWithRetry({
 					method: 'GET',
 					url: LATEST_RELEASE_API_URL,
@@ -40,7 +42,8 @@
 					const latestVersionTag = response.data.tag_name;
 
 					// Only show dialog if latest version is semantically greater than current version and not ignored
-					if (latestVersionTag !== ignoredVersion && compareVersions(latestVersionTag, version) > 0) {
+					if (latestVersionTag !== ignoredVersion && compareVersions(latestVersionTag, installedVersion(version)) > 0) { // Gira+ Multi: a test copy can pretend
+						rememberRelease(response.data); // Gira+ Multi
 						latestVersion = latestVersionTag;
 					}
 				});
@@ -69,6 +72,7 @@
 					<a href={RELEASES_URL} class="text-primary underline">{$t('see_release_notes')}</a>
 					<p class="text-xs text-label mt-2">{$t('update_warning_setting_note')}</p>
 				</div>
+				<UpdateInstall /> <!-- Gira+ Multi -->
 				<div class="flex justify-end mt-4 gap-2">
 					<button class="text-primary font-bold mx-2" onclick={() => { Preferences.set({ key: 'ignoredVersion', value: latestVersion }); latestVersion = ''; }}>{$t('ignore_button')}</button>
 					<button class="text-primary font-bold mx-2" onclick={() => { latestVersion = ''; }}>{$t('ok_button')}</button>

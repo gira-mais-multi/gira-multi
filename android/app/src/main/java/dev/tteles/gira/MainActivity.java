@@ -22,6 +22,7 @@ public class MainActivity extends BridgeActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    registerPlugin(dev.tteles.gira.multi.UpdatePlugin.class); // Gira+ Multi: installs updates (multi/UpdatePlugin.java)
     super.onCreate(savedInstanceState);
 
     // Keep your system UI flags

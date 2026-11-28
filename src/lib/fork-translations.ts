@@ -377,4 +377,32 @@ export const forkTranslations = {
 		en: 'Done',
 		pt: 'Concluído',
 	},
+	multi_update_button: {
+		en: 'Update',
+		pt: 'Atualizar',
+	},
+	multi_update_downloading: {
+		en: 'Downloading…',
+		pt: 'A transferir…',
+	},
+	multi_update_downloading_percent: {
+		en: 'Downloading… {{percent}}%',
+		pt: 'A transferir… {{percent}}%',
+	},
+	multi_update_permission: {
+		en: 'Android asks once: turn on “Allow from this source” for Gira+ Multi, then come back and tap Update.',
+		pt: 'O Android pede uma vez: ative “Permitir desta origem” para o Gira+ Multi, volte e toque em Atualizar.',
+	},
+	multi_update_open_settings: {
+		en: 'Open settings',
+		pt: 'Abrir definições',
+	},
+	multi_update_failed: {
+		en: "Couldn't download the update. Check the connection and try again.",
+		pt: 'Não foi possível transferir a atualização. Verifique a ligação e tente de novo.',
+	},
+	multi_update_retry: {
+		en: 'Try again',
+		pt: 'Tentar de novo',
+	},
 } as const;
